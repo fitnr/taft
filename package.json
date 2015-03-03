@@ -26,6 +26,7 @@
   "homepage": "https://github.com/fitnr/taft",
   "dependencies": {
     "commander": "^2.6.0",
+    "concat": "^1.0.0",
     "extend": "^2.0.0",
     "glob": "^4.4.1",
     "handlebars": "^3.0.0",
