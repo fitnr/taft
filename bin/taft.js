@@ -14,7 +14,7 @@ program
     .usage('[options] <file ...>')
     .description('Render files with Handlebars')
     .option('-t, --layout <file>', 'layout (template) file', String)
-    .option('-H, --helper <file>', 'js file that exports an object containing handlebars helpers', String)
+    .option('-H, --helpers <file>', 'js file that exports an object containing handlebars helpers', String)
     .option('-p, --partials <file/pattern>', 'partials (basename of file is partial name)', String)
     .option('-d, --data <data>', 'JSON or YAML data.', String)
     .option('-o, --output <path>', 'output file', String, '-')
@@ -100,8 +100,8 @@ var data = parseData(program.data),
         partials: program.partials ? glob.sync(program.partials) : undefined
     };
     
-if (program.helper)
-    options.helpers = require(path.join(process.cwd(), program.helper));
+if (program.helpers)
+    options.helpers = require(path.join(process.cwd(), program.helpers));
 
 if (program.ext.slice(0, 1) === '.')
     program.ext = program.ext.slice(1);
