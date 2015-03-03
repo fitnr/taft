@@ -30,6 +30,7 @@
     "extend": "^2.0.0",
     "glob": "^4.4.1",
     "handlebars": "^3.0.0",
+    "handlebars-helpers": "^0.5.8",
     "js-yaml": "^3.2.7",
     "minimatch": "^2.0.1",
     "yfm": "^0.2.0"

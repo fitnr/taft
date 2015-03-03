@@ -5,6 +5,7 @@ var fs = require('fs'),
     path = require('path'),
     extend = require('extend'),
     Handlebars = require('handlebars'),
+    HH = require('handlebars-helpers'),
     YFM = require('yfm');
 
 module.exports = taft;
@@ -20,10 +21,12 @@ function Taft(options, data) {
     options = options || {};
     this.__data = data || {};
 
+    HH.register(Handlebars, {});
     Handlebars.registerHelper(options.helpers || {});
+    this._helpers = options.helpers || {};
+    
     registerPartials(options.partials || []);
 
-    this._helpers = options.helpers || {};
     if (options.verbose) {
         console.error('registered partials:', Object.keys(Handlebars.partials).join(', '));
         console.error('registered helpers:', Object.keys(Handlebars.helpers).join(', '));
@@ -40,13 +43,13 @@ function Taft(options, data) {
 
             try {
                 var page = _template({page: data});    
+                Handlebars.registerPartial('body', '');
+                return page;
             } catch (e) {
-                throw('Unable to render page. Check your partials and helpers.\n');
+
+                throw('Unable to render page: ' + e.message);
             }
 
-            Handlebars.registerPartial('body', '');
-
-            return page;
         };
     }
 }
