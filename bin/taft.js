@@ -116,25 +116,32 @@ if (files.indexOf('-') > -1) {
 }
 
 // render output
-var taft = new Taft(data, options);
+try {
+    var taft = new Taft(options, data);
 
-if (program.output === '-')
-    try {
-        process.stdout.write(taft.eat(files[0]));
-    } catch (e) {
-        if (e.message === 'path must be a string')
-            process.stderr.write('Error reading input')
-        else
-            process.stderr.write(e)
-        process.exit(1);
+    if (program.output === '-')
+        try {
+
+            console.log(taft.eat(files[0]));
+
+        } catch (e) {
+            if (e.message === 'path must be a string')
+                console.error('Error reading input');
+            else
+                console.error(e);
+            process.exit(1);
+        }
+
+    else for (var i = 0, len = files.length, f, output; i < len; i++) {
+        f = outFile(program.destDir, files[i], program.ext);
+
+        output = taft.eat(files[i]);
+
+        fs.writeFile(f, output, logErr);
     }
 
-else for (var i = 0, len = files.length, f, output; i < len; i++) {
-    f = outFile(program.destDir, files[i], program.ext);
+} catch(err) {
 
-    output = taft.eat(files[i]);
+    console.error(err);
 
-    fs.writeFile(f, output, function(err) {
-        if (err) process.stderr.write(err);
-    });
 }

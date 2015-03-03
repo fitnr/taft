@@ -8,20 +8,16 @@ var fs = require('fs'),
 
 module.exports = taft;
 
-function taft(file, data, options) {
-    taft = new Taft(data, options);
-    return Taft.eat(file)
+function taft(file, options, data) {
+    var t = new Taft(options, data);
+    return t.eat(file);
 }
 
 taft.Taft = Taft;
 
-function Taft(data, options) {
-    if (typeof(options) === 'undefined') {
-        options = data || {};
-        this.__data = {};
-    } else {
-        this.__data = data || {};
-    }
+function Taft(options, data) {
+    options = options || {};
+    this.__data = data || {};
 
     Handlebars.registerHelper(options.helpers || {});
     registerPartials(options.partials || []);
@@ -31,7 +27,7 @@ function Taft(data, options) {
     if (options.layout) {
         Handlebars.registerPartial('body', '');
 
-        var _layout = new Taft(data);
+        var _layout = new Taft({}, data);
         var _template = _layout.template(options.layout);
 
         this.layout = function(content, data) {
