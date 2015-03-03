@@ -76,14 +76,16 @@ Taft.prototype.eat = function(file, data) {
 }
 
 var registerPartials = function(partials) {
-    if (Array.isArray(partials))
-        for (var i = 0, len = partials.length, name; i < len; i++) {
-            name = path.basename(items[i], path.extname(items[i]));
+    if (typeof(partials) == 'string')
+        partials = [partials];
 
+    if (Array.isArray(partials))
+        for (var i = 0, len = partials.length, p; i < len; i++){
+            p = partials[i];
             try {
-                Handlebars.registerPartial(name, fs.readFileSync(items[i]));
+                Handlebars.registerPartial(path.basename(p, path.extname(p)), fs.readFileSync(p, {encoding: 'utf-8'}));
             } catch (err) {
-                console.error("Could not register partial: " + name);
+                console.error("Could not register partial: " + path.basename(p, path.extname(p)));
             }
         }
 
@@ -92,5 +94,3 @@ var registerPartials = function(partials) {
             if (partials.hasOwnProperty(name))
                 Handlebars.registerPartial(name, partials[name]);
 };
-
-
