@@ -17,17 +17,16 @@ taft.Taft = Taft;
 
 function Taft(data, options) {
     if (typeof(options) === 'undefined') {
-        this.options = data;
+        options = data;
         this.data = {};
     } else {
         this.data = data;
-        this.options = options;
     }
 
     Handlebars.registerHelper(options.helpers || {});
     registerPartials(options.partials || []);
 
-    this._knownHelpers = keysToTruthy(options.helpers);
+    this._knownHelpers = keysToTruthy(options.helpers || {});
 
     if (options.layout) {
         var _layout = new Taft(data, content);
