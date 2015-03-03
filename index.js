@@ -35,7 +35,9 @@ function Taft(data, options) {
 
         this.layout = function(content, data) {
             Handlebars.registerPartial('body', content);
-            return layout({page: data});
+            var page = layout({page: data});
+            Handlebars.unregisterPartial('body');
+            return page;
         };
     }
 }
