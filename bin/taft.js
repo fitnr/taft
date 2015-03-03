@@ -12,14 +12,14 @@ var path = require('path'),
 program
     .version('0.0.1')
     .usage('[options] <file ...>')
-    .description('Render a file with Handlebars')
+    .description('Render files with Handlebars')
     .option('-t, --layout <file>', 'layout (template) file', String)
-    .option('-h, --helper <file>', 'Javascript file with handlebars helpers', String)
-    .option('-p, --partials <file/pattern>', 'Partials', String)
+    .option('-H, --helper <file>', 'js file that exports an object containing handlebars helpers', String)
+    .option('-p, --partials <file/pattern>', 'partials (basename of file is partial name)', String)
     .option('-d, --data <data>', 'JSON or YAML data.', String)
     .option('-o, --output <path>', 'output file', String, '-')
-    .option('-e, --ext <string>', 'output file extension', String, 'html')
     .option('-D, --dest-dir <path>', 'output directory (mandatory if more than one file given)', String, '.')
+    .option('-e, --ext <string>', 'output file extension (default: html)', String, 'html')
     
     .parse(process.argv);
 

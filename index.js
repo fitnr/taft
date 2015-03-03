@@ -84,12 +84,10 @@ Taft.prototype.eat = function(file, data) {
     var content = template(data);
 
     if (this.layout) {
-        data = extend(template.data, data || {})
-
+        data = extend(template.data, data || {});
         return this.layout(content, data || {});
     }
-    else
-        return content;
+    else return content;
 }
 
 var registerPartials = function(partials) {
