@@ -6,15 +6,42 @@ var fs = require('fs'),
     Handlebars = require('handlebars'),
     YFM = require('yfm');
 
-var taft = function(file, data, options) {
+module.exports = taft;
+
+function taft(file, data, options) {
+    taft = new Taft(data, options);
+    return Taft.eat(file)
+}
+
+taft.Taft = Taft;
+
+var Taft = function(data, options) {
     if (typeof(options) === 'undefined') {
         options = data;
         data = {};
     }
 
-    data = data || {};
-    var rawfile;
+    this.data = data || {};
+    this.options = options;
 
+    Handlebars.registerHelper(options.helpers || {});
+    registerPartials(options.partials || []);
+
+    this._knownHelpers = keysToTruthy(options.helpers);
+
+    if (options.layout) {
+        var _layout = new Taft(data, content);
+        var layout = _layout.template(options.layout)
+
+        this.layout = function(content, data) {
+            Handlebars.registerPartial('body', content);
+            return layout({page: data});
+        };
+    }
+}
+
+Taft.prototype.template = function(file) {
+    var rawfile;
     try {
         rawfile = fs.readFileSync(file, {encoding: 'utf8'});
     } catch (err) {
@@ -22,26 +49,30 @@ var taft = function(file, data, options) {
         else throw(err)
     }
 
-    Handlebars.registerHelper(options.helpers || {});
-    registerPartials(options.partials || []);
+    var source = YFM(rawfile);
+    var _tmpdata = extend(this.data, source.context);
+    var template = Handlebars.compile(source.content.trimLeft(), {
+        knownHelpers: this._knownHelpers
+    });
 
-    var source = YFM(rawfile),
-        format = Handlebars.compile(source.content.trimLeft()),
-        content = format(extend(data, source.context));
-
-    if (options.template)
-        content = taft(options.template, {page: data}, {
-            partials: {
-                body: content
-            }
-        });
-
-    return content;
+    return function(data) {
+        return template(data || _tmpdata);
+    }
 }
 
-taft.prototype.Taft = function(data, options) {
-    this.data = data;
-    this.options = options;
+Taft.prototype.extend = function(data) {
+    this.data = extend(this.data, data);
+    return this;
+}
+
+Taft.prototype.eat = function(file, data) {
+    var content = this.template(file)(data);
+
+    if (this.layout)
+        return this.layout(content, data);
+    else
+        return content;
+}
 
 var keysToTruthy = function(helpers) {
     var knownhelpers = helpers.keys(),
@@ -70,4 +101,4 @@ var registerPartials = function(partials) {
                 Handlebars.registerPartial(name, partials[name]);
 };
 
-module.exports = taft;
+

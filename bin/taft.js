@@ -5,13 +5,13 @@
 var path = require('path'),
     program = require('commander'),
     glob = require('glob'),
-    taft = require('..');
+    Taft = require('..').Taft;
 
 program
     .version('0.0.1')
     .usage('[options] <file ...>')
     .description('Render a file with Handlebars')
-    .option('-t, --template <file>', 'template file', String)
+    .option('-t, --layout <file>', 'layout (template) file', String)
     .option('-h, --helpers <file>', 'File with handlebars helpers', String)
     .option('-p, --partials <file or pattern>', 'Partials', String)
     .option('-d, --data <data>', 'JSON or YAML data.', String)
@@ -92,7 +92,7 @@ if (err) {
 //setup options
 var data = parseData(program.data),
     options = {
-        template: program.template || undefined,
+        layout: program.layout || undefined,
         partials: program.partials ? glob.sync(program.partials).found : undefined
     };
     
@@ -100,12 +100,14 @@ if (program.helpers)
     options.helpers = require(path.basename(program.helpers, path.extname(program.helpers)));
 
 // render output
+var taft = Taft(data, options);
+
 if (program.output === '-')
-    console.log(taft(files[0], data, options));
+    console.log(taft.eat(files[0]));
 
 else for (var i = 0, len = files.length, outFile, output; i < len; i++) {
     outfile = outFile(files[i], program.output, process.ext);
-    output = taft(files[i], data, options);
+    output = taft.eat(files[i]);
 
     fs.writeFile(output, outfile, function(err) {
         if (err) process.stderr.write(err);
