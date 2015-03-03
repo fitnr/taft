@@ -42,15 +42,17 @@ function Taft(data, options) {
 }
 
 Taft.prototype.template = function(file) {
-    var rawfile;
+    var raw;
     try {
-        rawfile = fs.readFileSync(file, {encoding: 'utf8'});
+        raw = fs.readFileSync(file, {encoding: 'utf8'});
     } catch (err) {
-        if (err.name == 'TypeError') rawfile = file;
+        if (err.name == 'TypeError') raw = file;
         else throw(err)
     }
 
-    var source = YFM(rawfile);
+    var source = YFM(raw);
+
+    // class data extended by current context
     var _tmpdata = extend(source.context, this.data);
     var template = Handlebars.compile(source.content.trimLeft(), {
         knownHelpers: this._knownHelpers
