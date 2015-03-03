@@ -96,8 +96,8 @@ var data = parseData(program.data),
         partials: program.partials ? glob.sync(program.partials).found : undefined
     };
     
-    options.helpers = require(path.basename(program.helpers, path.extname(program.helpers)));
 if (program.helper)
+    options.helpers = require(path.join(process.cwd(), program.helper));
 
 // render output
 var taft = new Taft(data, options);
