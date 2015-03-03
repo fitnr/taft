@@ -48,10 +48,11 @@ function Taft(data, options) {
 
 Taft.prototype.template = function(file) {
     var raw;
+
     try {
         raw = fs.readFileSync(file, {encoding: 'utf8'});
     } catch (err) {
-        if (err.name == 'TypeError') raw = file;
+        if (err.code == 'ENOENT') raw = file;
         else throw(err)
     }
 
