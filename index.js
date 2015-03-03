@@ -17,10 +17,10 @@ taft.Taft = Taft;
 
 function Taft(data, options) {
     if (typeof(options) === 'undefined') {
-        options = data;
-        this.data = {};
+        options = data || {};
+        this.__data = {};
     } else {
-        this.data = data || {};
+        this.__data = data || {};
     }
 
     Handlebars.registerHelper(options.helpers || {});
@@ -29,13 +29,18 @@ function Taft(data, options) {
     this._helpers = options.helpers || {};
 
     if (options.layout) {
+        Handlebars.registerPartial('body', '');
+
         var _layout = new Taft(data);
-        var layout = _layout.template(options.layout)
+        var _template = _layout.template(options.layout);
 
         this.layout = function(content, data) {
             Handlebars.registerPartial('body', content);
-            var page = layout({page: data});
-            Handlebars.unregisterPartial('body');
+
+            var page = _template({page: data});
+
+            Handlebars.registerPartial('body', '');
+
             return page;
         };
     }
@@ -53,24 +58,31 @@ Taft.prototype.template = function(file) {
     var source = YFM(raw);
 
     // class data extended by current context
-    var _tmpdata = extend(source.context, this.data);
-    var template = Handlebars.compile(source.content.trimLeft(), {knownHelpers: this._helpers});
+    var _data = extend(source.context, this.__data);
+    var compile = Handlebars.compile(source.content.trimLeft(), {knownHelpers: this._helpers});
 
-    return function(data) {
-        return template(extend(_tmpdata, data || {}));
+    var _template = function(data) {
+        var d = extend(_data, data || {})
+        return compile(d);
     }
+    _template.data = _data;
+    return _template;
 }
 
 Taft.prototype.extend = function(data) {
-    this.data = extend(this.data, data);
+    this.data = extend(this.__data, data);
     return this;
 }
 
 Taft.prototype.eat = function(file, data) {
-    var content = this.template(file)(data);
+    var template = this.template(file);
+    var content = template(data);
 
-    if (this.layout)
-        return this.layout(content, data);
+    if (this.layout) {
+        data = extend(template.data, data || {})
+
+        return this.layout(content, data || {});
+    }
     else
         return content;
 }
