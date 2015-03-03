@@ -12,10 +12,10 @@ program
     .usage('[options] <file ...>')
     .description('Render a file with Handlebars')
     .option('-t, --layout <file>', 'layout (template) file', String)
-    .option('-h, --helpers <file>', 'File with handlebars helpers', String)
-    .option('-p, --partials <file or pattern>', 'Partials', String)
+    .option('-h, --helper <file>', 'Javascript file with handlebars helpers', String)
+    .option('-p, --partials <file/pattern>', 'Partials', String)
     .option('-d, --data <data>', 'JSON or YAML data.', String)
-    .option('-o, --output <path>', 'output path or directory (mandatory if more than one file given', String, '-')
+    .option('-o, --output <path>', 'output path or directory (mandatory if more than one file given)', String, '-')
     .option('-e, --ext <string>', 'output file extension', String, 'html')
     .parse(process.argv);
 
@@ -96,8 +96,8 @@ var data = parseData(program.data),
         partials: program.partials ? glob.sync(program.partials).found : undefined
     };
     
-if (program.helpers)
     options.helpers = require(path.basename(program.helpers, path.extname(program.helpers)));
+if (program.helper)
 
 // render output
 var taft = new Taft(data, options);
