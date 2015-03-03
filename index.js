@@ -15,14 +15,14 @@ function taft(file, data, options) {
 
 taft.Taft = Taft;
 
-var Taft = function(data, options) {
+function Taft(data, options) {
     if (typeof(options) === 'undefined') {
-        options = data;
-        data = {};
+        this.options = data;
+        this.data = {};
+    } else {
+        this.data = data;
+        this.options = options;
     }
-
-    this.data = data || {};
-    this.options = options;
 
     Handlebars.registerHelper(options.helpers || {});
     registerPartials(options.partials || []);
@@ -50,13 +50,13 @@ Taft.prototype.template = function(file) {
     }
 
     var source = YFM(rawfile);
-    var _tmpdata = extend(this.data, source.context);
+    var _tmpdata = extend(source.context, this.data);
     var template = Handlebars.compile(source.content.trimLeft(), {
         knownHelpers: this._knownHelpers
     });
 
     return function(data) {
-        return template(data || _tmpdata);
+        return template(extend(_tmpdata, data || {}));
     }
 }
 
