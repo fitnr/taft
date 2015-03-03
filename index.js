@@ -26,7 +26,7 @@ function Taft(data, options) {
     Handlebars.registerHelper(options.helpers || {});
     registerPartials(options.partials || []);
 
-    this._knownHelpers = keysToTruthy(options.helpers || {});
+    this._helpers = options.helpers || {};
 
     if (options.layout) {
         var _layout = new Taft(data);
@@ -54,9 +54,7 @@ Taft.prototype.template = function(file) {
 
     // class data extended by current context
     var _tmpdata = extend(source.context, this.data);
-    var template = Handlebars.compile(source.content.trimLeft(), {
-        knownHelpers: this._knownHelpers
-    });
+    var template = Handlebars.compile(source.content.trimLeft(), {knownHelpers: this._helpers});
 
     return function(data) {
         return template(extend(_tmpdata, data || {}));
@@ -75,15 +73,6 @@ Taft.prototype.eat = function(file, data) {
         return this.layout(content, data);
     else
         return content;
-}
-
-var keysToTruthy = function(helpers) {
-    var knownhelpers = Object.keys(helpers),
-        output = {};
-    for (var i = 0, len = knownhelpers.length; i < len; i++) {
-        output[knownhelpers[i]] = true;
-    };
-    return output;
 }
 
 var registerPartials = function(partials) {
