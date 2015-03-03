@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 'use strict';
 
 var fs = require('fs'),
@@ -23,6 +24,10 @@ function Taft(options, data) {
     registerPartials(options.partials || []);
 
     this._helpers = options.helpers || {};
+    if (options.verbose) {
+        console.error('registered partials:', Object.keys(Handlebars.partials).join(', '));
+        console.error('registered helpers:', Object.keys(Handlebars.helpers).join(', '));
+    }
 
     if (options.layout) {
         Handlebars.registerPartial('body', '');
@@ -53,7 +58,7 @@ Taft.prototype.template = function(file) {
         raw = fs.readFileSync(file, {encoding: 'utf8'});
     } catch (err) {
         if (err.code == 'ENOENT') raw = file;
-        else throw(err)
+        else throw(err);
     }
 
     var source = YFM(raw);
@@ -63,17 +68,18 @@ Taft.prototype.template = function(file) {
     var compile = Handlebars.compile(source.content.trimLeft(), {knownHelpers: this._helpers});
 
     var _template = function(data) {
-        var d = extend(_data, data || {})
+        var d = extend(_data, data || {});
         return compile(d);
-    }
+    };
+
     _template.data = _data;
     return _template;
-}
+};
 
 Taft.prototype.extend = function(data) {
     this.data = extend(this.__data, data);
     return this;
-}
+};
 
 Taft.prototype.eat = function(file, data) {
     var template = this.template(file);
@@ -84,7 +90,7 @@ Taft.prototype.eat = function(file, data) {
         return this.layout(content, data || {});
     }
     else return content;
-}
+};
 
 var registerPartials = function(partials) {
     if (typeof(partials) == 'string')

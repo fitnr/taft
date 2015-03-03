@@ -20,11 +20,13 @@ program
     .option('-o, --output <path>', 'output file', String, '-')
     .option('-D, --dest-dir <path>', 'output directory (mandatory if more than one file given)', String, '.')
     .option('-e, --ext <string>', 'output file extension (default: html)', String, 'html')
+    .option('-v, --verbose', 'Output some debugging information')
     
     .parse(process.argv);
 
 function parseData(data, noStdin) {
     var result;
+
     if (!data)
         result = {};
 
@@ -34,17 +36,19 @@ function parseData(data, noStdin) {
         }));
 
     // read yaml
-    else if (data.slice(-3) === '---' || data.slice(-4).toLowerCase() === 'yaml') {
-        yaml = require('js-yaml');
+    else if (data.substr(-3) === '---' || data.slice(-4).toLowerCase() === 'yaml') {
+        var yaml = require('js-yaml');
         result = yaml.safeLoad(data);
     }
 
     // read json
-    else if (data.slice(-4).toLowerCase() === 'json')
-        fs.readFile(data, function(err, contents){
-            if (err) process.stderr.write("Couldn't read data file");
-            result = JSON.parse(contents);
-        });
+    else if (data.substr(-4).toLowerCase() === 'json')
+        try {
+            result = fs.readFileSync(data, {encoding: 'utf8'});
+        } catch(err) {
+            if (err.code == 'ENOENT') console.error("Couldn't find data file: " + data);
+            else console.error("Couldn't read data file: " + data);
+        }
 
     else if (data.slice(0, 1) == '{' && data.slice(-1) == '}')
         result = JSON.parse(data);
@@ -56,18 +60,22 @@ function outFile(outpath, file, ext) {
     return path.join(outpath, path.basename(file, path.extname(file)) + '.' + ext);
 }
 
+function logErr(err) {
+    if (err) console.error(err);
+}
+
 // expand files
 var files = [];
 for (var i = 0, len = program.args.length; i < len; i++) {
     if (program.args[i] === '-')
-        file.push('-');
+        files.push('-');
     else 
         Array.prototype.push.apply(files, glob.sync(program.args[i], {nonull: true}));
 }
 
 // check arguments
 var err = '', warn = '';
-if (files.length == 0)
+if (files.length === 0)
     err += 'error - please provide an input file\n';
 
 if (files.indexOf('-') > -1) {
@@ -82,13 +90,13 @@ if (files.indexOf('-') > -1) {
 
 try {
     if (!fs.lstatSync(program.destDir).isDirectory())
-        raise('not a directory');
+        throw 'not a directory';
 } catch (e) {
     err += 'error - output directory not found\n';
 }
 
 if (err || warn) {
-    process.stderr.write(err || warn);
+    console.error(err || warn);
     if (err)
         process.exit(1);
 }
@@ -97,7 +105,8 @@ if (err || warn) {
 var data = parseData(program.data),
     options = {
         layout: program.layout || undefined,
-        partials: program.partials ? glob.sync(program.partials) : undefined
+        partials: program.partials ? glob.sync(program.partials) : undefined,
+        verbose: program.verbose || false
     };
     
 if (program.helpers)
