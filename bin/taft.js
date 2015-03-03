@@ -17,8 +17,10 @@ program
     .option('-h, --helper <file>', 'Javascript file with handlebars helpers', String)
     .option('-p, --partials <file/pattern>', 'Partials', String)
     .option('-d, --data <data>', 'JSON or YAML data.', String)
-    .option('-o, --output <path>', 'output path or directory (mandatory if more than one file given)', String, '-')
+    .option('-o, --output <path>', 'output file', String, '-')
     .option('-e, --ext <string>', 'output file extension', String, 'html')
+    .option('-D, --dest-dir <path>', 'output directory (mandatory if more than one file given)', String, '.')
+    
     .parse(process.argv);
 
 function parseData(data, noStdin) {
@@ -50,11 +52,8 @@ function parseData(data, noStdin) {
     return result;
 }
 
-function outFile(file, outpath, ext) {
-    return path.join(
-        outpath,
-        path.basename(file, path.extname(file)) + '.' + ext
-    );
+function outFile(outpath, file, ext) {
+    return path.join(outpath, path.basename(file, path.extname(file)) + '.' + ext);
 }
 
 // expand files
@@ -77,11 +76,12 @@ if (files.indexOf('-') > -1) {
         files.splice(files.indexOf('-'), 1);
     }
 
-    if (!fs.lstatSync(program.output).isDirectory())
-        program.output = path.dirname(program.output);
+    if (program.data == '-')
+        err += "error - can't read from stdin twice";
+}
 
-    if (!fs.lstatSync().isDirectory(program.output))
-        err += 'error - output directory not found\n';
+if (!fs.lstatSync(program.destDir).isDirectory())
+    err += 'error - output directory not found\n';
 
 if (err || warn) {
     process.stderr.write(err || warn);
@@ -99,6 +99,9 @@ var data = parseData(program.data),
 if (program.helper)
     options.helpers = require(path.join(process.cwd(), program.helper));
 
+if (program.ext.slice(0, 1) === '.')
+    program.ext = program.ext.slice(1);
+
 // read STDIN if necessary
 if (files.indexOf('-') > -1) {
     var j = files.indexOf('-');
@@ -114,11 +117,12 @@ var taft = new Taft(data, options);
 if (program.output === '-')
     process.stdout.write(taft.eat(files[0]));
 
-else for (var i = 0, len = files.length, outFile, output; i < len; i++) {
-    outfile = outFile(files[i], program.output, process.ext);
+else for (var i = 0, len = files.length, f, output; i < len; i++) {
+    f = outFile(program.destDir, files[i], program.ext);
+
     output = taft.eat(files[i]);
 
-    fs.writeFile(output, outfile, function(err) {
+    fs.writeFile(f, output, function(err) {
         if (err) process.stderr.write(err);
     });
 }
