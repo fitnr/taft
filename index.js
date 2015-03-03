@@ -43,6 +43,13 @@ taft.prototype.Taft = function(data, options) {
     this.data = data;
     this.options = options;
 
+var keysToTruthy = function(helpers) {
+    var knownhelpers = helpers.keys(),
+        output = {};
+    for (var i = 0, len = knownhelpers.length; i < len; i++) {
+        output[knownhelpers[i]] = true;
+    };
+    return output;
 }
 
 var registerPartials = function(partials) {
