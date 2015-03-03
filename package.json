@@ -1,0 +1,36 @@
+{
+  "name": "Taft",
+  "version": "0.0.1",
+  "description": "Generate static html files from Handlebars files with YAML front matter",
+  "main": "index.js",
+  "scripts": {
+    "test": "node tests/test.js"
+  },
+  "bin": "bin/taft.js",
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/fitnr/taft"
+  },
+  "keywords": [
+    "yfm",
+    "yaml",
+    "handlebars",
+    "static",
+    "html"
+  ],
+  "author": "Neil Freeman",
+  "license": "GPLv3",
+  "bugs": {
+    "url": "https://github.com/fitnr/taft/issues"
+  },
+  "homepage": "https://github.com/fitnr/taft",
+  "dependencies": {
+    "commander": "^2.6.0",
+    "extend": "^2.0.0",
+    "glob": "^4.4.1",
+    "handlebars": "^3.0.0",
+    "js-yaml": "^3.2.7",
+    "minimatch": "^2.0.1",
+    "yfm": "^0.2.0"
+  }
+}
