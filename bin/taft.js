@@ -80,8 +80,12 @@ if (files.indexOf('-') > -1) {
         err += "error - can't read from stdin twice";
 }
 
-if (!fs.lstatSync(program.destDir).isDirectory())
+try {
+    if (!fs.lstatSync(program.destDir).isDirectory())
+        raise('not a directory');
+} catch (e) {
     err += 'error - output directory not found\n';
+}
 
 if (err || warn) {
     process.stderr.write(err || warn);
@@ -93,7 +97,7 @@ if (err || warn) {
 var data = parseData(program.data),
     options = {
         layout: program.layout || undefined,
-        partials: program.partials ? glob.sync(program.partials).found : undefined
+        partials: program.partials ? glob.sync(program.partials) : undefined
     };
     
 if (program.helper)
@@ -115,7 +119,15 @@ if (files.indexOf('-') > -1) {
 var taft = new Taft(data, options);
 
 if (program.output === '-')
-    process.stdout.write(taft.eat(files[0]));
+    try {
+        process.stdout.write(taft.eat(files[0]));
+    } catch (e) {
+        if (e.message === 'path must be a string')
+            process.stderr.write('Error reading input')
+        else
+            process.stderr.write(e)
+        process.exit(1);
+    }
 
 else for (var i = 0, len = files.length, f, output; i < len; i++) {
     f = outFile(program.destDir, files[i], program.ext);

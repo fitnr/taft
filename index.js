@@ -37,7 +37,11 @@ function Taft(data, options) {
         this.layout = function(content, data) {
             Handlebars.registerPartial('body', content);
 
-            var page = _template({page: data});
+            try {
+                var page = _template({page: data});    
+            } catch (e) {
+                throw('Unable to render page. Check your partials and helpers.\n');
+            }
 
             Handlebars.registerPartial('body', '');
 
