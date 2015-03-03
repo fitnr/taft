@@ -39,6 +39,12 @@ var taft = function(file, data, options) {
     return content;
 }
 
+taft.prototype.Taft = function(data, options) {
+    this.data = data;
+    this.options = options;
+
+}
+
 var registerPartials = function(partials) {
     if (Array.isArray(partials))
         for (var i = 0, len = partials.length, name; i < len; i++) {

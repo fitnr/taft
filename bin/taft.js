@@ -5,7 +5,6 @@
 var path = require('path'),
     program = require('commander'),
     glob = require('glob'),
-    YAML = require('js-yaml'),
     taft = require('..');
 
 program
@@ -27,9 +26,8 @@ function parseData(data, noStdin) {
 
     else if (data === '-' && !noStdin) {
         var stdin;
-        console.log('hi')
-        process.stdin.setEncoding('utf8');
 
+        process.stdin.setEncoding('utf8');
         process.stdin.on('readable', function() {
             var chunk = process.stdin.read();
             if (chunk !== null) stdin += chunk;
@@ -40,10 +38,13 @@ function parseData(data, noStdin) {
             result = parseData(stdin, true);
         });
     }
+
     // read yaml
-    else if (data.slice(-3) === '---' || data.slice(-4).toLowerCase() === 'yaml') 
+    else if (data.slice(-3) === '---' || data.slice(-4).toLowerCase() === 'yaml') {
+        yaml = require('js-yaml');
         result = yaml.safeLoad(data);
-        
+    }
+
     // read json
     else if (data.slice(-4).toLowerCase() === 'json')
         fs.readFile(data, function(err, contents){
@@ -71,7 +72,6 @@ for (var i = 0, len = program.args.length; i < len; i++)
 
 // check arguments
 var err = '';
-
 if (files.length == 0)
     err += 'error - please provide an input file\n';
 
