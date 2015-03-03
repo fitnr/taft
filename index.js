@@ -29,7 +29,7 @@ function Taft(data, options) {
     this._knownHelpers = keysToTruthy(options.helpers || {});
 
     if (options.layout) {
-        var _layout = new Taft(data, content);
+        var _layout = new Taft(data);
         var layout = _layout.template(options.layout)
 
         this.layout = function(content, data) {
