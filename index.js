@@ -20,7 +20,7 @@ function Taft(data, options) {
         options = data;
         this.data = {};
     } else {
-        this.data = data;
+        this.data = data || {};
     }
 
     Handlebars.registerHelper(options.helpers || {});
@@ -76,7 +76,7 @@ Taft.prototype.eat = function(file, data) {
 }
 
 var keysToTruthy = function(helpers) {
-    var knownhelpers = helpers.keys(),
+    var knownhelpers = Object.keys(helpers),
         output = {};
     for (var i = 0, len = knownhelpers.length; i < len; i++) {
         output[knownhelpers[i]] = true;

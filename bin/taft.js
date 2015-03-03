@@ -100,7 +100,7 @@ if (program.helpers)
     options.helpers = require(path.basename(program.helpers, path.extname(program.helpers)));
 
 // render output
-var taft = Taft(data, options);
+var taft = new Taft(data, options);
 
 if (program.output === '-')
     console.log(taft.eat(files[0]));
