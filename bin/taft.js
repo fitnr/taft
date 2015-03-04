@@ -9,13 +9,18 @@ var path = require('path'),
     glob = require('glob'),
     Taft = require('..').Taft;
 
+function collect(val, list) {
+    list.push(val);
+    return list;
+}
+
 program
     .version('0.0.1')
     .usage('[options] <file ...>')
     .description('Render files with Handlebars')
     .option('-t, --layout <file>', 'layout (template) file', String)
-    .option('-H, --helpers <file>', 'js file that exports an object containing handlebars helpers', String)
-    .option('-p, --partials <file/pattern>', 'partials (basename of file is partial name)', String)
+    .option('-H, --helper <file>', 'js file that exports an object containing handlebars helpers', collect, [])
+    .option('-p, --partial <file>', 'partial (globs are ok)', collect, [])
     .option('-d, --data <data>', 'JSON or YAML data.', String)
     .option('-o, --output <path>', 'output file', String, '-')
     .option('-D, --dest-dir <path>', 'output directory (mandatory if more than one file given)', String, '.')
@@ -105,12 +110,10 @@ if (err || warn) {
 var data = parseData(program.data),
     options = {
         layout: program.layout || undefined,
-        partials: program.partials ? glob.sync(program.partials) : undefined,
+        partials: program.partial ? glob.sync('{' + program.partial.join(',') + '}') : undefined,
+        helpers: program.helper || undefined,
         verbose: program.verbose || false
     };
-    
-if (program.helpers)
-    options.helpers = require(path.join(process.cwd(), program.helpers));
 
 if (program.ext.slice(0, 1) === '.')
     program.ext = program.ext.slice(1);

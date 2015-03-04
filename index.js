@@ -22,11 +22,8 @@ function Taft(options, data) {
     options = options || {};
     this.__data = data || {};
 
-    HH.register(Handlebars, {});
-    Handlebars.registerHelper(options.helpers || {});
-    this._helpers = options.helpers || {};
-    
-    registerPartials(options.partials || []);
+    this.addHelpers(options.helpers || {});
+    this.registerPartials(options.partials || []);
 
     this.silent = options.silent || false;
     this.verbose = options.verbose || false;
@@ -107,9 +104,43 @@ Taft.prototype.build = function(file, data) {
         return content;
 };
 
-var registerPartials = function(partials) {
-    if (typeof(partials) == 'string')
-        partials = [partials];
+Taft.prototype.addHelpers = function(helpers) {
+    HH.register(Handlebars, {});
+
+    if (Array.isArray(helpers))
+        this.registerHelperFiles(helpers);
+
+    else if (typeof(helpers) == 'object')
+        Handlebars.registerHelper(helpers || {});
+
+    else if (typeof(helpers) == 'undefined') {}
+
+    else if (!this.silent)
+        console.error('Ignoring passed helpers because they were a ' + typeof(helpers) + '. Expected Array or Object.');
+
+    this._helpers = helpers || {};
+};
+
+Taft.prototype.registerHelperFiles = function(helpers) {
+    for (var i = 0, h, module, len = helpers.length; i < len; i++) {
+        h = helpers[i];
+        try {
+            module = require(h);
+            if (typeof(module) === 'function')
+                Handlebars.registerHelper(path.basename(h, path.extname(h)), module);
+            else if (typeof(module) === 'object')
+                Handlebars.registerHelper(module);
+            else
+                if (!this.silent) console.error("Couldn't register helper '" + h + "' because it's not a function or object.");
+
+        } catch (err) {
+            if (!this.silent) console.error("Error registering helper '" + h + "': " + err.message);
+        }
+    }
+};
+
+Taft.prototype.registerPartials = function(partials) {
+    if (typeof(partials) == 'string') partials = [partials];
 
     if (Array.isArray(partials))
         for (var i = 0, len = partials.length, p; i < len; i++){
@@ -117,7 +148,7 @@ var registerPartials = function(partials) {
             try {
                 Handlebars.registerPartial(path.basename(p, path.extname(p)), fs.readFileSync(p, {encoding: 'utf-8'}));
             } catch (err) {
-                if (!this.silent) console.error("Couldn't register partial '" + p + "': " + err.message);
+                console.error("Could not register partial: " + path.basename(p, path.extname(p)));
             }
         }
 
