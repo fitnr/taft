@@ -4,6 +4,7 @@
 var fs = require('fs'),
     path = require('path'),
     extend = require('extend'),
+    clone = require('clone-object'),
     Handlebars = require('handlebars'),
     HH = require('handlebars-helpers'),
     YFM = require('yfm');
@@ -38,18 +39,23 @@ function Taft(options, data) {
         var _layout = new Taft({}, data);
         var _template = _layout.template(options.layout);
 
-        this.layout = function(content, data) {
+
+        this.layout = function(content, pageData) {
             Handlebars.registerPartial('body', content);
 
             try {
-                var page = _template({page: data});    
-                Handlebars.registerPartial('body', '');
-                return page;
-            } catch (e) {
+                // override passed pageData with global data,
+                // then append it in a page key
+                var data = extend(clone(pageData), this.__data, {page: pageData}),
+                    page = _template(data);
 
+                Handlebars.registerPartial('body', '');
+
+                return page;
+
+            } catch (e) {
                 throw('Unable to render page: ' + e.message);
             }
-
         };
     }
 }
@@ -67,15 +73,17 @@ Taft.prototype.template = function(file) {
     var source = YFM(raw);
 
     // class data extended by current context
-    var _data = extend(source.context, this.__data);
+    var data = extend(source.context, this.__data),
+        _data = function() { return clone(data); };
+
     var compile = Handlebars.compile(source.content.trimLeft(), {knownHelpers: this._helpers});
 
     var _template = function(data) {
-        var d = extend(_data, data || {});
-        return compile(d);
+        return compile(extend(_data(), data || {}));
     };
 
     _template.data = _data;
+
     return _template;
 };
 
@@ -88,11 +96,10 @@ Taft.prototype.eat = function(file, data) {
     var template = this.template(file);
     var content = template(data);
 
-    if (this.layout) {
-        data = extend(template.data, data || {});
-        return this.layout(content, data || {});
-    }
-    else return content;
+    if (this.layout)
+        return this.layout(content, extend(template.data(), data || {}));
+    else
+        return content;
 };
 
 var registerPartials = function(partials) {

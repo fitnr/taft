@@ -25,6 +25,7 @@
   },
   "homepage": "https://github.com/fitnr/taft",
   "dependencies": {
+    "clone-object": "^0.1.0",
     "commander": "^2.6.0",
     "concat": "^1.0.0",
     "extend": "^2.0.0",
