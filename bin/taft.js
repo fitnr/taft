@@ -11,9 +11,12 @@ var path = require('path'),
     yaml = require('js-yaml'),
     Taft = require('..').Taft;
 
-function collect(val, list) {
-    list.push(val);
-    return list;
+function mergeGlob(val, list) {
+    list = list || [];
+    console.log(val, list);
+    console.log(list.concat.apply(list, glob.sync(val)));
+    console.log(list)
+    return list.concat.apply(list, glob.sync(val));
 }
 
 program
@@ -21,9 +24,9 @@ program
     .usage('[options] <file ...>')
     .description('Render files with Handlebars')
     .option('-t, --layout <file>', 'layout (template) file', String)
-    .option('-H, --helper <file>', 'js file that exports an object containing handlebars helpers', collect, [])
-    .option('-p, --partial <file>', 'partial (globs are ok)', collect, [])
-    .option('-d, --data <data>', 'JSON or YAML data.', collect, [])
+    .option('-H, --helper <file>', 'js file that exports an object containing handlebars helpers', mergeGlob, [])
+    .option('-p, --partial <file>', 'partial (globs are ok)', mergeGlob, [])
+    .option('-d, --data <data>', 'JSON or YAML data.', mergeGlob, [])
     .option('-o, --output <path>', 'output file', String, '-')
     .option('-D, --dest-dir <path>', 'output directory (mandatory if more than one file given)', String, '.')
     .option('-e, --ext <string>', 'output file extension (default: html)', String, 'html')
@@ -40,7 +43,7 @@ function parseData(data, noStdin) {
         }));
 
     // read yaml
-    else if (data.substr(-3) === '---')
+    else if (data.substr(0, 3) === '---')
         result = yaml.safeLoad(data);
 
     else if (data.slice(0, 1) == '{' && data.slice(-1) == '}')
@@ -58,19 +61,20 @@ function parseDataFiles(datafiles) {
         result = parseData('-');
     }
 
-    for (var i = 0, raw, data, len = datafiles.length; i < len; i++) {
-        if (formats.indexOf(path.extname(datafiles[i])) > -1) {
+    for (var i = 0, raw, data, d, len = datafiles.length; i < len; i++) {
+        d = datafiles[i];
+        if (formats.indexOf(path.extname(d)) > -1) {
 
             try {
-                raw = fs.readFileSync(datafiles[i], {encoding: 'utf8'});
-                result[path.extname(datafiles[i])] = parseData(raw, true);
+                raw = fs.readFileSync(d, {encoding: 'utf8'});
+                result[path.basename(d, path.extname(d))] = parseData(raw, true);
 
             } catch (err) {
                 if (!program.silent) {
                     if (err.code == 'ENOENT')
                         console.error("Couldn't find data file: " + err.path);
                     else
-                        console.error("Couldn't read data file: " + err.path);
+                        console.error("Problem read data file: " + d);
                 }
             }
 
@@ -130,7 +134,7 @@ if (err || warn) {
 var data = parseDataFiles(program.data),
     options = {
         layout: program.layout || undefined,
-        partials: program.partial ? glob.sync('{' + program.partial.join(',') + '}') : undefined,
+        partials: program.partial ? mergeGlob(program.partial) : undefined,
         helpers: program.helper || undefined,
         verbose: program.verbose || false
     };

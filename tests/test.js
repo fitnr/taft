@@ -23,9 +23,11 @@ fs.readFile(__dirname + '/fixtures/index.html', {encoding: 'utf-8'}, function(er
 
 var command = 'node',
     args = [
-        'bin/taft.js',
+        './bin/taft.js',
         '-H tests/helper.js',
         '-d \'{"a": 2}\'',
+        '--data data/yaml.yaml',
+        '--data data/json.json',
         '--layout tests/template.html',
         '-p tests/partial.html',
         'tests/test.handlebars'
