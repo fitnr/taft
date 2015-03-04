@@ -2,13 +2,13 @@ var taft = require('..');
 var fs = require('fs');
 var spawn = require('child_process').spawn;
 
-var T = new taft.Taft({a: 2}, {
+var T = new taft.Taft({
     helpers: require('./helper.js'),
     layout: __dirname + '/template.html',
     partials: [__dirname + '/partial.html']
-});
+}, {a: 2});
 
-var result = T.eat(__dirname + '/test.handlebars');
+var result = T.build(__dirname + '/test.handlebars');
 
 fs.readFile(__dirname + '/fixtures/index.html', {encoding: 'utf-8'}, function(err, fixture) {
     if (err) console.error(err);

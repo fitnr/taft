@@ -21,7 +21,7 @@ program
     .option('-D, --dest-dir <path>', 'output directory (mandatory if more than one file given)', String, '.')
     .option('-e, --ext <string>', 'output file extension (default: html)', String, 'html')
     .option('-v, --verbose', 'Output some debugging information')
-    
+
     .parse(process.argv);
 
 function parseData(data, noStdin) {
@@ -131,7 +131,7 @@ try {
     if (program.output === '-')
         try {
 
-            console.log(taft.eat(files[0]));
+            console.log(taft.build(files[0]));
 
         } catch (e) {
             if (e.message === 'path must be a string')
@@ -143,8 +143,8 @@ try {
 
     else for (var i = 0, len = files.length, f, output; i < len; i++) {
         f = outFile(program.destDir, files[i], program.ext);
-
-        output = taft.eat(files[i]);
+        console.log(f);
+        output = taft.build(files[i]);
 
         fs.writeFile(f, output, logErr);
     }

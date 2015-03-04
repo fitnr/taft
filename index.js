@@ -13,7 +13,7 @@ module.exports = taft;
 
 function taft(file, options, data) {
     var t = new Taft(options, data);
-    return t.eat(file);
+    return t.build(file);
 }
 
 taft.Taft = Taft;
@@ -28,7 +28,9 @@ function Taft(options, data) {
     
     registerPartials(options.partials || []);
 
-    if (options.verbose) {
+    this.verbose = options.verbose || false;
+
+    if (this.verbose) {
         console.error('registered partials:', Object.keys(Handlebars.partials).join(', '));
         console.error('registered helpers:', Object.keys(Handlebars.helpers).join(', '));
     }
@@ -39,6 +41,7 @@ function Taft(options, data) {
         var _layout = new Taft({}, data);
         var _template = _layout.template(options.layout);
 
+        if (this.verbose) console.error('Using layout: ' + options.layout);
 
         this.layout = function(content, pageData) {
             Handlebars.registerPartial('body', content);
@@ -92,7 +95,8 @@ Taft.prototype.extend = function(data) {
     return this;
 };
 
-Taft.prototype.eat = function(file, data) {
+Taft.prototype.build = function(file, data) {
+    if (!this.quiet) console.error('taft building ' + file);
     var template = this.template(file);
     var content = template(data);
 
