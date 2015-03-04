@@ -21,7 +21,7 @@ program
     .option('-D, --dest-dir <path>', 'output directory (mandatory if more than one file given)', String, '.')
     .option('-e, --ext <string>', 'output file extension (default: html)', String, 'html')
     .option('-v, --verbose', 'Output some debugging information')
-
+    .option('-s, --silent', "Don't output anything")
     .parse(process.argv);
 
 function parseData(data, noStdin) {
@@ -143,7 +143,9 @@ try {
 
     else for (var i = 0, len = files.length, f, output; i < len; i++) {
         f = outFile(program.destDir, files[i], program.ext);
-        console.log(f);
+
+        if (!program.silent) console.log(f);
+
         output = taft.build(files[i]);
 
         fs.writeFile(f, output, logErr);

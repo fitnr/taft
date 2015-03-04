@@ -28,6 +28,7 @@ function Taft(options, data) {
     
     registerPartials(options.partials || []);
 
+    this.silent = options.silent || false;
     this.verbose = options.verbose || false;
 
     if (this.verbose) {
@@ -96,7 +97,7 @@ Taft.prototype.extend = function(data) {
 };
 
 Taft.prototype.build = function(file, data) {
-    if (!this.quiet) console.error('taft building ' + file);
+    if (!this.silent) console.error('taft building ' + file);
     var template = this.template(file);
     var content = template(data);
 
@@ -116,7 +117,7 @@ var registerPartials = function(partials) {
             try {
                 Handlebars.registerPartial(path.basename(p, path.extname(p)), fs.readFileSync(p, {encoding: 'utf-8'}));
             } catch (err) {
-                console.error("Could not register partial: " + path.basename(p, path.extname(p)));
+                if (!this.silent) console.error("Couldn't register partial '" + p + "': " + err.message);
             }
         }
 
