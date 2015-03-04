@@ -15,9 +15,9 @@ fs.readFile(__dirname + '/fixtures/index.html', {encoding: 'utf-8'}, function(er
     try {
         console.assert(fixture === result);    
     } catch (e) {
-        console.error('did not match')
+        console.error('did not match');
         console.error(fixture);
-        console.error(result);
+        console.error('\n---\n' + result);
     }
 });
 
