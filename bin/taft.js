@@ -7,6 +7,8 @@ var path = require('path'),
     concat = require('concat'),
     program = require('commander'),
     glob = require('glob'),
+    extend = require('extend'),
+    yaml = require('js-yaml'),
     Taft = require('..').Taft;
 
 function collect(val, list) {
@@ -21,7 +23,7 @@ program
     .option('-t, --layout <file>', 'layout (template) file', String)
     .option('-H, --helper <file>', 'js file that exports an object containing handlebars helpers', collect, [])
     .option('-p, --partial <file>', 'partial (globs are ok)', collect, [])
-    .option('-d, --data <data>', 'JSON or YAML data.', String)
+    .option('-d, --data <data>', 'JSON or YAML data.', collect, [])
     .option('-o, --output <path>', 'output file', String, '-')
     .option('-D, --dest-dir <path>', 'output directory (mandatory if more than one file given)', String, '.')
     .option('-e, --ext <string>', 'output file extension (default: html)', String, 'html')
@@ -30,34 +32,52 @@ program
     .parse(process.argv);
 
 function parseData(data, noStdin) {
-    var result;
+    var result = {};
 
-    if (!data)
-        result = {};
-
-    else if (data === '-' && !noStdin)
+    if (data === '-' && !noStdin)
         process.stdin.pipe(concat(function(data){
             result = parseData(data, true);
         }));
 
     // read yaml
-    else if (data.substr(-3) === '---' || data.slice(-4).toLowerCase() === 'yaml') {
-        var yaml = require('js-yaml');
+    else if (data.substr(-3) === '---')
         result = yaml.safeLoad(data);
-    }
-
-    // read json
-    else if (data.substr(-4).toLowerCase() === 'json')
-        try {
-            result = fs.readFileSync(data, {encoding: 'utf8'});
-        } catch(err) {
-            if (err.code == 'ENOENT') console.error("Couldn't find data file: " + data);
-            else console.error("Couldn't read data file: " + data);
-        }
 
     else if (data.slice(0, 1) == '{' && data.slice(-1) == '}')
         result = JSON.parse(data);
 
+    return result;
+}
+
+function parseDataFiles(datafiles) {
+    var result = {},
+        formats = ['.json', '.yaml'];
+
+    if (datafiles.indexOf('-') > -1) {
+        datafiles.splice(datafiles.indexOf('-'));
+        result = parseData('-');
+    }
+
+    for (var i = 0, raw, data, len = datafiles.length; i < len; i++) {
+        if (formats.indexOf(path.extname(datafiles[i])) > -1) {
+
+            try {
+                raw = fs.readFileSync(datafiles[i], {encoding: 'utf8'});
+                result[path.extname(datafiles[i])] = parseData(raw, true);
+
+            } catch (err) {
+                if (!program.silent) {
+                    if (err.code == 'ENOENT')
+                        console.error("Couldn't find data file: " + err.path);
+                    else
+                        console.error("Couldn't read data file: " + err.path);
+                }
+            }
+
+        } else {
+            extend(result, parseData(datafiles[i], true));
+        }
+    }
     return result;
 }
 
@@ -89,7 +109,7 @@ if (files.indexOf('-') > -1) {
         files.splice(files.indexOf('-'), 1);
     }
 
-    if (program.data == '-')
+    if (program.data.indexOf('-') > -1)
         err += "error - can't read from stdin twice";
 }
 
@@ -107,7 +127,7 @@ if (err || warn) {
 }
 
 //setup options
-var data = parseData(program.data),
+var data = parseDataFiles(program.data),
     options = {
         layout: program.layout || undefined,
         partials: program.partial ? glob.sync('{' + program.partial.join(',') + '}') : undefined,
