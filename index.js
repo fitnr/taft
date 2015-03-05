@@ -28,10 +28,6 @@ function Taft(options, data) {
     this.silent = options.silent || false;
     this.verbose = options.verbose || false;
 
-    if (this.verbose) {
-        console.error('registered partials:', Object.keys(Handlebars.partials).join(', '));
-        console.error('registered helpers:', Object.keys(Handlebars.helpers).join(', '));
-    }
 
     if (options.layout) {
         Handlebars.registerPartial('body', '');
@@ -94,7 +90,8 @@ Taft.prototype.extend = function(data) {
 };
 
 Taft.prototype.build = function(file, data) {
-    if (!this.silent) console.error('taft building ' + file);
+    this.stderr('taft building ' + file);
+
     var template = this.template(file);
     var content = template(data);
 
@@ -131,10 +128,11 @@ Taft.prototype.registerHelperFiles = function(helpers) {
             else if (typeof(module) === 'object')
                 Handlebars.registerHelper(module);
             else
-                if (!this.silent) console.error("Couldn't register helper '" + h + "' because it's not a function or object.");
+                throw "not a function or object.";
 
         } catch (err) {
-            if (!this.silent) console.error("Error registering helper '" + h + "': " + err.message);
+            this.stderr("Error registering helper '" + h + "'");
+            this.stderr(err);
         }
     }
 };
@@ -156,4 +154,15 @@ Taft.prototype.registerPartials = function(partials) {
         for (var name in partials)
             if (partials.hasOwnProperty(name))
                 Handlebars.registerPartial(name, partials[name]);
+};
+
+Taft.prototype.stderr = function (err) {
+    if (!this.silent) {
+        err = err.hasOwnProperty('message') ? err.message : err;
+        console.error(err);
+    }
+};
+
+Taft.prototype.debug = function (msg) {
+    if (this.verbose && !this.silent) console.error(msg);
 };

@@ -179,7 +179,5 @@ try {
     }
 
 } catch(err) {
-
-    console.error(err);
-
+    taft.stderr(err);
 }
