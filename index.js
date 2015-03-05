@@ -2,11 +2,14 @@
 'use strict';
 
 var fs = require('fs'),
+    async = require('async'),
+    concat = require('concat-stream'),
     path = require('path'),
     extend = require('extend'),
     clone = require('clone-object'),
     Handlebars = require('handlebars'),
     HH = require('handlebars-helpers'),
+    yaml = require('js-yaml'),
     YFM = require('yfm');
 
 module.exports = taft;
@@ -18,44 +21,66 @@ function taft(file, options, data) {
 
 taft.Taft = Taft;
 
-function Taft(options, data) {
-    options = options || {};
-    this.__data = data || {};
+var extendData = function(err, results) {
+    if (err) this.err(err);
+    results.forEach(function(){
+        extend(this._data, results.shift());    
+    });
+};
 
-    this.addHelpers(options.helpers || {});
-    this.registerPartials(options.partials || []);
+function Taft(options) {
+    if (!(this instanceof Taft)) return new Taft(options);
+
+    options = options || {};
 
     this.silent = options.silent || false;
     this.verbose = options.verbose || false;
 
+    // data
+    this._data = {};
+    this.data(options.data || {});
 
-    if (options.layout) {
-        Handlebars.registerPartial('body', '');
+    // helpers
+    HH.register(Handlebars, {});
+    this._knownHelpers = {};
+    this.helpers(options.helpers || {});
 
-        var _layout = new Taft({}, data);
-        var _template = _layout.template(options.layout);
+    // partials
+    this.partials(options.partials || []);
 
-        if (this.verbose) console.error('Using layout: ' + options.layout);
-
-        this.layout = function(content, pageData) {
-            Handlebars.registerPartial('body', content);
-
-            try {
-                // override passed pageData with global data,
-                // then append it in a page key
-                var data = extend(clone(pageData), this.__data, {page: pageData}),
-                    page = _template(data);
-
-                Handlebars.registerPartial('body', '');
-
-                return page;
-
-            } catch (e) {
-                throw('Unable to render page: ' + e.message);
-            }
-        };
-    }
+    // layout
+    if (options.layout) this.layout(options.layout);
+    
+    return this;
 }
+
+Taft.prototype.layout = function(layout) {
+    Handlebars.registerPartial('body', '');
+
+    var _taft = new Taft().data(this._data);
+    var _template = _taft.template(layout);
+
+    this.debug('Using layout: ' + layout);
+
+    this.applyLayout = function(content, pageData) {
+        Handlebars.registerPartial('body', content);
+
+        try {
+            // override passed pageData with global data,
+            // then append it in a page key
+            var data = extend(clone(pageData), this._data, {page: pageData}),
+                page = _template(data);
+
+            Handlebars.registerPartial('body', '');
+
+            return page;
+
+        } catch (e) {
+            throw('Unable to render page: ' + e.message);
+        }
+    };
+    return this;
+};
 
 Taft.prototype.template = function(file) {
     var raw;
@@ -84,9 +109,77 @@ Taft.prototype.template = function(file) {
     return _template;
 };
 
-Taft.prototype.extend = function(data) {
-    this.data = extend(this.__data, data);
+/*  
+    Takes a mixed list of (1) files, (2) js objects, (3) JSON, (4) YAML
+*/
+Taft.prototype.data = function() {
+    var args = Array.prototype.concat.apply([], Array.prototype.slice.call(arguments));
+
+    var parse = function(datum) {
+        return this._parseData(datum);
+    };
+
+    var callback = extendData.bind(this);
+    parse = parse.bind(this);
+
+    async.map(args, parse, callback);
+
     return this;
+};
+
+Taft.prototype._parseData = function(source) {
+    var result;
+
+    try {
+        if (typeof(source) === 'object')
+            result = source;
+
+        else if (source.substr(0, 3) === '---')
+            result = yaml.safeLoad(source);
+
+        else if (source.slice(0, 1) == '{' && source.slice(-1) == '}')
+            result = JSON.parse(source);
+
+        else
+            throw "Didn't recognize format";
+
+    } catch (e) {
+        this.debug('Reading ' + source + ' as a file');
+        result = this.readFile(source);
+    }
+
+    return result;
+};
+
+Taft.prototype.readFile = function(filename) {
+    var formats = ['.json', '.yaml'];
+    var result = {};
+
+    var parseWithBase = (function(data) {
+        var base = path.basename(filename, path.extname(filename));
+        result = this.parseData(data, base);
+    }).bind(this);
+
+    try {
+        if (formats.indexOf(path.extname(filename)) < 0)
+            throw "Didn't recognize file type.";
+
+        var stream = fs.createReadStream(filename, {encoding: 'utf8'});
+
+        stream.on('error', function(e) { throw e; });
+
+        stream.pipe(concat(parseWithBase));
+
+    } catch (err) {
+        result = {};
+
+        if (err.code == 'ENOENT') this.stderr("Couldn't find data file: " + filename);
+        else this.stderr("Problem reading data file: " + filename);
+
+        this.stderr(err);
+    }
+
+    return result;
 };
 
 Taft.prototype.build = function(file, data) {
@@ -95,38 +188,53 @@ Taft.prototype.build = function(file, data) {
     var template = this.template(file);
     var content = template(data);
 
-    if (this.layout)
-        return this.layout(content, extend(template.data(), data || {}));
+    if (this.applyLayout)
+        return this.applyLayout(content, extend(template.data(), data || {}));
     else
         return content;
 };
 
-Taft.prototype.addHelpers = function(helpers) {
-    HH.register(Handlebars, {});
+Taft.prototype.helpers = function(helpers) {
+    var registered = [];
 
     if (Array.isArray(helpers))
-        this.registerHelperFiles(helpers);
+        registered = this.registerHelperFiles(helpers);
 
-    else if (typeof(helpers) == 'object')
-        Handlebars.registerHelper(helpers || {});
+    else if (typeof(helpers) == 'object') {
+        Handlebars.registerHelper(helpers);
+        registered = Object.keys(helpers);
+    }
 
     else if (typeof(helpers) == 'undefined') {}
 
-    else if (!this.silent)
-        console.error('Ignoring passed helpers because they were a ' + typeof(helpers) + '. Expected Array or Object.');
+    else
+        this.stderr('Ignoring passed helpers because they were a ' + typeof(helpers) + '. Expected Array or Object.');
 
-    this._helpers = helpers || {};
+    if (registered.length) this.debug('registered helpers: ' + registered.join(', '));
+
+    this._knownHelpers = Array.prototype.concat.apply(this._knownHelpers, registered);
+
+    return this;
 };
 
 Taft.prototype.registerHelperFiles = function(helpers) {
-    for (var i = 0, h, module, len = helpers.length; i < len; i++) {
-        h = helpers[i];
+    var registered = [];
+
+    helpers.forEach((function(h){
         try {
-            module = require(h);
-            if (typeof(module) === 'function')
-                Handlebars.registerHelper(path.basename(h, path.extname(h)), module);
-            else if (typeof(module) === 'object')
+            var module = require('./' + h);
+
+            if (typeof(module) === 'function') {
+                var name = path.basename(h, path.extname(h));
+                Handlebars.registerHelper(name, module);
+                registered = registered.concat(name);
+            }
+
+            else if (typeof(module) === 'object') {
                 Handlebars.registerHelper(module);
+                registered = Array.prototype.concat.apply(registered, Object.keys(module));
+            }
+
             else
                 throw "not a function or object.";
 
@@ -134,19 +242,25 @@ Taft.prototype.registerHelperFiles = function(helpers) {
             this.stderr("Error registering helper '" + h + "'");
             this.stderr(err);
         }
-    }
+
+    }).bind(this));
+
+    return registered;
 };
 
-Taft.prototype.registerPartials = function(partials) {
+Taft.prototype.partials = function(partials) {
     if (typeof(partials) == 'string') partials = [partials];
+
+    var registered = [];
 
     if (Array.isArray(partials))
         for (var i = 0, len = partials.length, p; i < len; i++){
-            p = partials[i];
+            p = path.basename(partials[i], path.extname(partials[i]));
             try {
-                Handlebars.registerPartial(path.basename(p, path.extname(p)), fs.readFileSync(p, {encoding: 'utf-8'}));
+                Handlebars.registerPartial(p, fs.readFileSync(partials[i], {encoding: 'utf-8'}));
+                registered.push(p);
             } catch (err) {
-                console.error("Could not register partial: " + path.basename(p, path.extname(p)));
+                this.stderr("Could not register partial: " + p);
             }
         }
 
@@ -154,6 +268,10 @@ Taft.prototype.registerPartials = function(partials) {
         for (var name in partials)
             if (partials.hasOwnProperty(name))
                 Handlebars.registerPartial(name, partials[name]);
+
+    if (registered.length) this.debug('registered partials: ' + registered.join(', '));
+
+    return this;
 };
 
 Taft.prototype.stderr = function (err) {

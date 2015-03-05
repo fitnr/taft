@@ -4,7 +4,7 @@
 
 var path = require('path'),
     fs = require('fs'),
-    concat = require('concat'),
+    concat = require('concat-stream'),
     program = require('commander'),
     glob = require('glob'),
     extend = require('extend'),
@@ -12,12 +12,12 @@ var path = require('path'),
     Taft = require('..').Taft;
 
 function mergeGlob(val, list) {
-    list = list || [];
-    console.log(val, list);
-    console.log(list.concat.apply(list, glob.sync(val)));
-    console.log(list)
-    return list.concat.apply(list, glob.sync(val));
+    var globbed = Array.isArray(val) ? val : glob.sync(val);
+    list = Array.prototype.concat.apply(list || [], globbed);
+    return list;
 }
+
+var STDIN_RE = /^\w+:-$/;
 
 program
     .version('0.0.1')
@@ -34,55 +34,19 @@ program
     .option('-s, --silent', "Don't output anything")
     .parse(process.argv);
 
-function parseData(data, noStdin) {
-    var result = {};
+function parseStdin(datasources) {
+    return datasources.map(function(source) {
+        if (source === '-' || source.match(STDIN_RE)) {
+            var result = {},
+                sink = source === '-' ? result : result[source.slice(0, -2)];
 
-    if (data === '-' && !noStdin)
-        process.stdin.pipe(concat(function(data){
-            result = parseData(data, true);
-        }));
-
-    // read yaml
-    else if (data.substr(0, 3) === '---')
-        result = yaml.safeLoad(data);
-
-    else if (data.slice(0, 1) == '{' && data.slice(-1) == '}')
-        result = JSON.parse(data);
-
-    return result;
-}
-
-function parseDataFiles(datafiles) {
-    var result = {},
-        formats = ['.json', '.yaml'];
-
-    if (datafiles.indexOf('-') > -1) {
-        datafiles.splice(datafiles.indexOf('-'));
-        result = parseData('-');
-    }
-
-    for (var i = 0, raw, data, d, len = datafiles.length; i < len; i++) {
-        d = datafiles[i];
-        if (formats.indexOf(path.extname(d)) > -1) {
-
-            try {
-                raw = fs.readFileSync(d, {encoding: 'utf8'});
-                result[path.basename(d, path.extname(d))] = parseData(raw, true);
-
-            } catch (err) {
-                if (!program.silent) {
-                    if (err.code == 'ENOENT')
-                        console.error("Couldn't find data file: " + err.path);
-                    else
-                        console.error("Problem read data file: " + d);
-                }
-            }
-
-        } else {
-            extend(result, parseData(datafiles[i], true));
+            process.stdin.pipe(concat(function(data) {
+                sink = Taft.prototype.parseData(data);
+            }));
+            source = result;
         }
-    }
-    return result;
+        return source;
+    });
 }
 
 function outFile(outpath, file, ext) {
@@ -95,12 +59,10 @@ function logErr(err) {
 
 // expand files
 var files = [];
-for (var i = 0, len = program.args.length; i < len; i++) {
-    if (program.args[i] === '-')
-        files.push('-');
-    else 
-        Array.prototype.push.apply(files, glob.sync(program.args[i], {nonull: true}));
-}
+program.args.forEach(function(arg) {
+    if (arg === '-') files.push('-');
+    else Array.prototype.push.apply(files, glob.sync(arg, {nonull: true}));
+});
 
 // check arguments
 var err = '', warn = '';
@@ -113,7 +75,9 @@ if (files.indexOf('-') > -1) {
         files.splice(files.indexOf('-'), 1);
     }
 
-    if (program.data.indexOf('-') > -1)
+    var namedStdin = program.data.some(function(x){ return String(x).match(STDIN_RE); });
+
+    if (program.data.indexOf('-') > -1 || namedStdin)
         err += "error - can't read from stdin twice";
 }
 
@@ -131,33 +95,32 @@ if (err || warn) {
 }
 
 //setup options
-var data = parseDataFiles(program.data),
-    options = {
+var options = {
         layout: program.layout || undefined,
         partials: program.partial ? mergeGlob(program.partial) : undefined,
+        data: parseStdin(program.data),
         helpers: program.helper || undefined,
-        verbose: program.verbose || false
+        verbose: program.verbose || false,
+        silent: program.silent || false,
     };
 
-if (program.ext.slice(0, 1) === '.')
-    program.ext = program.ext.slice(1);
+var ext = (program.ext.slice(0, 1) === '.') ? program.ext.slice(1) : program.ext;
 
 // read STDIN if necessary
 if (files.indexOf('-') > -1) {
     var j = files.indexOf('-');
-    
+
     process.stdin.pipe(concat(function(data){
         files[j] = data;
     }));
 }
 
+var taft = new Taft(options);
+
 // render output
 try {
-    var taft = new Taft(options, data);
-
     if (program.output === '-')
         try {
-
             console.log(taft.build(files[0]));
 
         } catch (e) {
@@ -165,18 +128,18 @@ try {
                 console.error('Error reading input');
             else
                 console.error(e);
+
             process.exit(1);
         }
 
-    else for (var i = 0, len = files.length, f, output; i < len; i++) {
-        f = outFile(program.destDir, files[i], program.ext);
+    else
+        files.forEach(function(file) {
+            var f = outFile(program.destDir, file, ext);
 
-        if (!program.silent) console.log(f);
+            if (!program.silent) console.log(f);
 
-        output = taft.build(files[i]);
-
-        fs.writeFile(f, output, logErr);
-    }
+            fs.writeFile(f, taft.build(file), logErr);
+        });
 
 } catch(err) {
     taft.stderr(err);
