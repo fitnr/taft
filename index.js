@@ -2,6 +2,7 @@
 'use strict';
 
 var fs = require('rw'),
+    glob = require('glob'),
     path = require('path'),
     extend = require('extend'),
     clone = require('clone-object'),
@@ -15,6 +16,18 @@ var STDIN_RE = /^\w+:\/dev\/stdin/;
 module.exports = taft;
 
 function base(file) { return path.basename(file, path.extname(file)); };
+
+function mergeGlob(list) {
+    if (!Array.isArray(list)) list = [list];
+    list = list.map(function(e){
+        var globbed;
+        try { globbed = glob.sync(e); }
+        catch (e) { globbed = []; }
+        return globbed.length ? globbed : e;
+    });
+    list = Array.prototype.concat.apply([], list);
+    return list.filter(function(e, pos) { return list.indexOf(e) === pos; });
+}
 
 function taft(file, options) {
     return new Taft(options).build(file);
@@ -57,6 +70,8 @@ function Taft(options) {
 Taft.prototype.layouts = function(layouts) {
     if (typeof(layouts) === 'string')
         layouts = [layouts];
+
+    layouts = mergeGlob(layouts);
 
     layouts.forEach((function(layout){
 
@@ -141,6 +156,8 @@ Taft.prototype.template = function(name, file) {
 */
 Taft.prototype.data = function() {
     var args = Array.prototype.concat.apply([], Array.prototype.slice.call(arguments));
+
+    args = mergeGlob(args);
 
     var parseExtend = function(argument){
         var r = this._parseData(argument);
@@ -247,7 +264,7 @@ Taft.prototype.helpers = function(helpers) {
     if (typeof(helpers) === 'string') helpers = [helpers];
 
     if (Array.isArray(helpers))
-        registered = this.registerHelperFiles(helpers);
+        registered = this.registerHelperFiles(mergeGlob(helpers));
 
     else if (typeof(helpers) == 'object') {
         Handlebars.registerHelper(helpers);
@@ -308,7 +325,9 @@ Taft.prototype.partials = function(partials) {
 
     var registered = [];
 
-    if (Array.isArray(partials))
+    if (Array.isArray(partials)) {
+        partials = mergeGlob(partials);
+
         for (var i = 0, len = partials.length, p; i < len; i++){
             p = base(partials[i]);
             try {
@@ -318,8 +337,7 @@ Taft.prototype.partials = function(partials) {
                 this.stderr("Could not register partial: " + p);
             }
         }
-
-    else if (typeof(partials) === 'object')
+    } else if (typeof(partials) === 'object')
         for (var name in partials)
             if (partials.hasOwnProperty(name))
                 Handlebars.registerPartial(name, partials[name]);

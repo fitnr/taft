@@ -11,11 +11,9 @@ var path = require('path'),
     yaml = require('js-yaml'),
     Taft = require('..').Taft;
 
-function mergeGlob(val, list) {
-    var globbed = Array.isArray(val) ? val : glob.sync(val);
-    globbed = globbed.length ? globbed : [val];
-    list = Array.prototype.concat.apply(list || [], globbed);
-    return list;
+function collect(val, memo) {
+  memo.push(val);
+  return memo;
 }
 
 var STDIN_RE = /^\w+:-$/;
@@ -24,10 +22,10 @@ program
     .version('0.0.2')
     .usage('[options] <file ...>')
     .description('Render files with Handlebars')
-    .option('-t, --layout <file>', 'layout (template) file', String)
-    .option('-H, --helper <file>', 'js file that exports an object containing handlebars helpers', mergeGlob, [])
-    .option('-p, --partial <file>', 'partial (globs are ok)', mergeGlob, [])
-    .option('-d, --data <data>', 'JSON or YAML data.', mergeGlob, [])
+    .option('-t, --layout <file>', 'layout (template) file', collect, [])
+    .option('-H, --helper <file>', 'js file that exports an object containing handlebars helpers', collect, [])
+    .option('-p, --partial <file>', 'partial (globs are ok)', collect, [])
+    .option('-d, --data <data>', 'JSON or YAML data.', collect, [])
     .option('-o, --output <path>', 'output file', String, '-')
     .option('-D, --dest-dir <path>', 'output directory (mandatory if more than one file given)', String)
     .option('-e, --ext <string>', 'output file extension (default: html)', String, 'html')
@@ -95,7 +93,7 @@ function outFilePath(file) {
 // setup options
 var options = {
         layouts: program.layout || undefined,
-        partials: program.partial ? mergeGlob(program.partial) : undefined,
+        partials: program.partial || undefined,
         data: parseStdin(program.data),
         helpers: program.helper || undefined,
         verbose: program.verbose || false,
