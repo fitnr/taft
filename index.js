@@ -186,6 +186,8 @@ Taft.prototype.build = function(file, data) {
 Taft.prototype.helpers = function(helpers) {
     var registered = [];
 
+    if (typeof(helpers) === 'string') helpers = [helpers];
+
     if (Array.isArray(helpers))
         registered = this.registerHelperFiles(helpers);
 
@@ -210,8 +212,15 @@ Taft.prototype.registerHelperFiles = function(helpers) {
     var registered = [];
 
     helpers.forEach((function(h){
+        var module;
         try {
-            var module = require('./' + h);
+            try {
+                module = require(path.join(process.cwd(), h));
+
+            } catch (err) {
+                if (err.code === 'MODULE_NOT_FOUND') 
+                    module = require(h);
+            }
 
             if (typeof(module) === 'function') {
                 var name = path.basename(h, path.extname(h));

@@ -33,7 +33,7 @@ Note that the status message outputs to stderr, so One can safely pipe the resul
 
 To generate more than one file, just pass a destination directory.
 
-````=
+````
 $ taft source/page1.hbs source/page2.hbs other/*.hbs --dest-dir build/
 taft building source/page1.hbs
 build/page1.html
@@ -44,7 +44,7 @@ build/more.html
 ````
 
 Specifying a single output file with `--output`:
-````=
+````
 $ taft source/page1.hbs -o build/page1.html
 build/page1.html
 ````
@@ -63,7 +63,7 @@ script: main.js
 <script src="{{script}}"></script>
 ````
 
-````==
+````
 $ taft --layout layouts/template.hbs source/page1.hbs > build/page1.html
 ````
 
@@ -89,10 +89,14 @@ taft building source/page1.hbs
 
 ### Helpers
 
-Taft will register helpers for you. You pass it a file that `exports` a helper, Taft will register it to Handlebars.
+Taft will register helpers for you. You pass it a file that `exports` a helper, or the name of a NPM module, Taft will register it to Handlebars.
 
 ````
 $ taft --helper helpers/magic.js source/page1.hbs > build/page1.hbs
+````
+````
+$ npm install handlebars-helper-minify
+$ taft --helper handlebars-helper-minify source/page1.hbs > build/page1.hbs
 ````
 
 You can export the helper either as a function, or as an object containing several functions. In the former format, the name of the file becomes the helper. In the latter format, the key of each function is the name of the helper.
