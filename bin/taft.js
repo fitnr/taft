@@ -3,7 +3,6 @@
 'use strict';
 
 var path = require('path'),
-    fs = require('fs'),
     rw = require('rw'),
     concat = require('concat-stream'),
     program = require('commander'),
@@ -59,13 +58,9 @@ if (files.length === 0) {
     err += 'error - please provide an input file\n';
 }
 
-// Lists of files SHOULD have a dest dir, and if a dest dir, if MUST exist
-if (files.length > 1) {
-    if (!program.destDir)
+// Lists of files SHOULD have a dest dir
+if (files.length > 1 && !program.destDir)
         warn += 'warning - Writing multiple files without --dest-dir\n';
-    else if (!fs.lstatSync(program.destDir).isDirectory())
-        err += 'error - output directory not found\n';
-}
 
 // If STDIN is given, it MUST not also be given in data
 if (files.indexOf('-') > -1) {
