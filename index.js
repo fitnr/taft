@@ -242,7 +242,7 @@ Taft.prototype.readFile = function(filename) {
 };
 
 Taft.prototype.build = function(file, data) {
-    this.stderr('taft building ' + file);
+    this.stderr('building: ' + file);
 
     var name = base(file);
 
