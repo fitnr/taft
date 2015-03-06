@@ -25,64 +25,89 @@ taft.Taft = Taft;
 function Taft(options) {
     if (!(this instanceof Taft)) return new Taft(options);
 
-    this.options = options || {};
+    this._options = options || {};
 
-    this.silent = options.silent || false;
-    this.verbose = options.verbose || false;
+    this.silent = this._options.silent || false;
+    this.verbose = this._options.verbose || false;
 
     // data
     this._data = {};
-    this.data(options.data || {});
+    this.data(this._options.data || {});
 
     // helpers
     // uncomment when HH 0.6.0 is out
     // HH.register(Handlebars, {});
     this._knownHelpers = {};
-    this.helpers(options.helpers || {});
+    this.helpers(this._options.helpers || {});
 
     // partials
-    this.partials(options.partials || []);
+    this.partials(this._options.partials || []);
 
-    // layout
-    if (options.layout) this.layout(options.layout);
+    // templates
+    this._templates = {};
+
+    // layouts
+    this._layouts = {};
+    Handlebars.registerPartial('body', '');
+    this.layouts(this._options.layouts || [])
     
     return this;
 }
 
-Taft.prototype.layout = function(layout) {
-    Handlebars.registerPartial('body', '');
+Taft.prototype.layouts = function(layouts) {
+    if (typeof(layouts) === 'string')
+        layouts = [layouts];
 
-    var _taft = new Taft().data(this._data);
-    var _template = _taft.template(layout);
+    layouts.forEach((function(layout){
 
-    this.debug('Using layout: ' + layout);
+        var name = base(layout);
 
-    this.applyLayout = function(content, pageData) {
-        Handlebars.registerPartial('body', content);
+        var t = new Taft({
+                silent: this.silent,
+                verbose: this.verbose
+            }).data(this._data)
+            .template(name, layout);
 
-        try {
-            // override passed pageData with global data,
-            // then append it in a page key
-            var data = extend(clone(pageData), this._data, {page: pageData}),
-                page = _template(data);
+        this._layouts[name] = t._templates[name];
 
-            Handlebars.registerPartial('body', '');
+        this.debug('Adding layout: ' + name);
+    }).bind(this));
 
-            return page;
-
-        } catch (e) {
-            throw('Unable to render page: ' + e.message);
-        }
-    };
     return this;
 };
 
-Taft.prototype.template = function(file) {
-    var raw;
-
-    this.debug('reading ' + file);
+Taft.prototype._applyLayout = function(name, content, pageData) {
+    Handlebars.registerPartial('body', content);
 
     try {
+        // override passed pageData with global data,
+        // then append it in a page key
+        var data = extend(clone(pageData), this._data, {page: pageData}),
+            page = this._layouts[name](data);
+
+        Handlebars.registerPartial('body', '');
+
+        return page;
+
+    } catch (e) {
+        throw('Unable to render page: ' + e.message);
+    }
+};
+
+/**
+ * Taft.template(name, file) // will create a template named 'name' from file
+ * Taft.template(file) // will create a template named $(basename file)
+ */
+Taft.prototype.template = function(name, file) {
+    if (!file) {
+        file = name;
+        name = base(name);
+    }
+
+    var raw;
+
+    try {
+        this.debug('reading ' + name +' from ' + file);
         raw = fs.readFileSync(file, {encoding: 'utf8'});
     } catch (err) {
         this.debug(err);
@@ -90,21 +115,25 @@ Taft.prototype.template = function(file) {
         else throw(err);
     }
 
-    var source = YFM(raw);
+    var source = YFM(raw), _layout_name;
+
+    // no nesting! default layout doesn't get layout;
+    if (name === 'default') _layout_name = undefined;
+    else _layout_name = source.context.layout || 'default'; 
 
     // class data extended by current context
     var data = extend(source.context, this._data),
-        _data = function() { return clone(data); };
+        _data = function() { return clone(data); },
+        compile = Handlebars.compile(source.content.trimLeft(), {knownHelpers: this._helpers});
 
-    var compile = Handlebars.compile(source.content.trimLeft(), {knownHelpers: this._helpers});
-
-    var _template = function(data) {
+    this._templates[name] = function(data) {
         return compile(extend(_data(), data || {}));
     };
 
-    _template.data = _data;
+    this._templates[name].data = _data;
+    this._templates[name].layout = _layout_name;
 
-    return _template;
+    return this;
 };
 
 /*
@@ -198,13 +227,18 @@ Taft.prototype.readFile = function(filename) {
 Taft.prototype.build = function(file, data) {
     this.stderr('taft building ' + file);
 
-    var template = this.template(file);
-    var content = template(data);
+    var name = base(file);
 
-    if (this.applyLayout)
-        return this.applyLayout(content, extend(template.data(), data || {}));
-    else
-        return content;
+    if (!this._templates[name]) this.template(name, file);
+    var template = this._templates[name],
+        content = template(file);
+
+    if (this._layouts[template.layout]) {
+        var d = extend(template.data(), data || {});
+        content = this._applyLayout(template.layout, content, d);
+    }
+
+    return content;
 };
 
 Taft.prototype.helpers = function(helpers) {
@@ -247,7 +281,7 @@ Taft.prototype.registerHelperFiles = function(helpers) {
             }
 
             if (typeof(module) === 'function') {
-                module(Handlebars, this.options);
+                module(Handlebars, this._options);
                 registered = registered.concat(base(h));
             }
 
