@@ -100,7 +100,7 @@ Taft.prototype.template = function(file) {
     return _template;
 };
 
-/*  
+/*
     Takes a mixed list of (1) files, (2) js objects, (3) JSON, (4) YAML
 */
 Taft.prototype.data = function() {
@@ -139,6 +139,8 @@ Taft.prototype._parseData = function(source, base) {
         sink = this.readFile(source);
     }
 
+    if (base) result[base] = sink;
+    else result = sink;
 
     return result;
 };

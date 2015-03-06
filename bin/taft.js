@@ -13,6 +13,7 @@ var path = require('path'),
 
 function mergeGlob(val, list) {
     var globbed = Array.isArray(val) ? val : glob.sync(val);
+    globbed = globbed.length ? globbed : [val];
     list = Array.prototype.concat.apply(list || [], globbed);
     return list;
 }
