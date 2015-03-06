@@ -14,9 +14,10 @@ var STDIN_RE = /^\w+:\/dev\/stdin/;
 
 module.exports = taft;
 
-function taft(file, options, data) {
-    var t = new Taft(options, data);
-    return t.build(file);
+function base(file) { return path.basename(file, path.extname(file)); };
+
+function taft(file, options) {
+    return new Taft(options).build(file);
 }
 
 taft.Taft = Taft;
@@ -247,7 +248,7 @@ Taft.prototype.registerHelperFiles = function(helpers) {
 
             if (typeof(module) === 'function') {
                 module(Handlebars, this.options);
-                registered = registered.concat(path.basename(h, path.extname(h)));
+                registered = registered.concat(base(h));
             }
 
             else if (typeof(module) === 'object') {
@@ -275,7 +276,7 @@ Taft.prototype.partials = function(partials) {
 
     if (Array.isArray(partials))
         for (var i = 0, len = partials.length, p; i < len; i++){
-            p = path.basename(partials[i], path.extname(partials[i]));
+            p = base(partials[i]);
             try {
                 Handlebars.registerPartial(p, fs.readFileSync(partials[i], {encoding: 'utf-8'}));
                 registered.push(p);

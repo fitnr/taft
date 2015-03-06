@@ -94,7 +94,7 @@ function outFilePath(file) {
 
 // setup options
 var options = {
-        layout: program.layout || undefined,
+        layouts: program.layout || undefined,
         partials: program.partial ? mergeGlob(program.partial) : undefined,
         data: parseStdin(program.data),
         helpers: program.helper || undefined,
