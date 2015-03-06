@@ -24,7 +24,7 @@ taft.Taft = Taft;
 function Taft(options) {
     if (!(this instanceof Taft)) return new Taft(options);
 
-    options = options || {};
+    this.options = options || {};
 
     this.silent = options.silent || false;
     this.verbose = options.verbose || false;
@@ -246,9 +246,8 @@ Taft.prototype.registerHelperFiles = function(helpers) {
             }
 
             if (typeof(module) === 'function') {
-                var name = path.basename(h, path.extname(h));
-                Handlebars.registerHelper(name, module);
-                registered = registered.concat(name);
+                module(Handlebars, this.options);
+                registered = registered.concat(path.basename(h, path.extname(h)));
             }
 
             else if (typeof(module) === 'object') {

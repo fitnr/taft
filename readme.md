@@ -107,18 +107,20 @@ $ npm install handlebars-helper-minify
 $ taft --helper handlebars-helper-minify source/page1.hbs > build/page1.hbs
 ````
 
-If you're using a custom file, export the helper either as a function, or as an object containing several functions. In the former format, the name of the file becomes the helper. In the latter format, the key of each function is the name of the helper.
+If you're using a custom file, you can either export a function or an object containing several functions. In the former format, the function will be called with two arguments: `Handlebars` and `Taft.options`. In the latter format, the key of each function is the name of the helper.
 
 ````javascript
-// magic.js
 // This will be available in Handlebars as '{{magic}}'
 
-module.exports = function() { /* do stuff */ };
+module.exports = function(Handlebars, options) {
+    Handlebars.registerHelper('magic', function(){
+        /* do stuff */
+    });
+}
 ````
 
 ````javascript
-// These will be available in Handlebars as '{{whiteMagic}} and {{blackMagic}},
-// regardless of the file name'
+// {{whiteMagic}} and {{blackMagic}}
 
 // Use your favorite node module
 var spells = require('spells');
