@@ -21,7 +21,7 @@ function mergeGlob(val, list) {
 var STDIN_RE = /^\w+:-$/;
 
 program
-    .version('0.0.1')
+    .version('0.0.2')
     .usage('[options] <file ...>')
     .description('Render files with Handlebars')
     .option('-t, --layout <file>', 'layout (template) file', String)
@@ -76,10 +76,12 @@ if (files.indexOf('-') > -1) {
         files.splice(files.indexOf('-'), 1);
     }
 
-    var namedStdin = program.data.some(function(x){ return String(x).match(STDIN_RE); });
-
-    if (program.data.indexOf('-') > -1 || namedStdin)
+    if (
+        program.data.indexOf('-') > -1 ||
+        program.data.some(function(x){ return String(x).match(STDIN_RE); })
+    ) {
         err += "error - can't read from stdin twice";
+    }
 }
 
 try {
@@ -91,8 +93,7 @@ try {
 
 if (err || warn) {
     console.error(err || warn);
-    if (err)
-        process.exit(1);
+    if (err) process.exit(1);
 }
 
 //setup options
@@ -108,13 +109,10 @@ var options = {
 var ext = (program.ext.slice(0, 1) === '.') ? program.ext.slice(1) : program.ext;
 
 // read STDIN if necessary
-if (files.indexOf('-') > -1) {
-    var j = files.indexOf('-');
-
+if (files.indexOf('-') > -1)
     process.stdin.pipe(concat(function(data){
-        files[j] = data;
+        files[files.indexOf('-')] = data;
     }));
-}
 
 var taft = new Taft(options);
 
