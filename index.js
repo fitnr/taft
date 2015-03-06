@@ -6,7 +6,7 @@ var fs = require('fs'),
     extend = require('extend'),
     clone = require('clone-object'),
     Handlebars = require('handlebars'),
-    HH = require('handlebars-helpers'),
+    // HH = require('handlebars-helpers'),
     yaml = require('js-yaml'),
     YFM = require('yfm');
 
@@ -32,7 +32,8 @@ function Taft(options) {
     this.data(options.data || {});
 
     // helpers
-    HH.register(Handlebars, {});
+    // uncomment when HH 0.6.0 is out
+    // HH.register(Handlebars, {});
     this._knownHelpers = {};
     this.helpers(options.helpers || {});
 

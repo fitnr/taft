@@ -99,7 +99,7 @@ $ npm install handlebars-helper-minify
 $ taft --helper handlebars-helper-minify source/page1.hbs > build/page1.hbs
 ````
 
-You can export the helper either as a function, or as an object containing several functions. In the former format, the name of the file becomes the helper. In the latter format, the key of each function is the name of the helper.
+If you're using a custom file, export the helper either as a function, or as an object containing several functions. In the former format, the name of the file becomes the helper. In the latter format, the key of each function is the name of the helper.
 
 ````javascript
 // magic.js
@@ -122,7 +122,7 @@ module.exports = {
 };
 ````
 
-Taft comes packaged with the helpers in the [handlebars-helpers](https://github.com/assemble/handlebars-helpers) library.
+<!-- Taft comes packaged with the helpers in the [handlebars-helpers](https://github.com/assemble/handlebars-helpers) library. -->
 
 ### Data
 
