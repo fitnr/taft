@@ -6,30 +6,27 @@ var fs = require('fs'),
     concat = require('concat-stream'),
     path = require('path'),
     extend = require('extend'),
+    inherits = require('inherits'),
     clone = require('clone-object'),
     Handlebars = require('handlebars'),
     HH = require('handlebars-helpers'),
+    ee = require('events').EventEmitter,
     yaml = require('js-yaml'),
     YFM = require('yfm');
 
 module.exports = taft;
 
-function taft(file, options, data) {
-    var t = new Taft(options, data);
+function taft(file, options) {
+    var t = new Taft(options);
     return t.build(file);
 }
 
 taft.Taft = Taft;
-
-var extendData = function(err, results) {
-    if (err) this.err(err);
-    results.forEach(function(){
-        extend(this._data, results.shift());    
-    });
-};
-
+inherits(taft.Taft, ee);
 function Taft(options) {
     if (!(this instanceof Taft)) return new Taft(options);
+
+    this.name = 'taft';
 
     options = options || {};
 
@@ -50,7 +47,7 @@ function Taft(options) {
 
     // layout
     if (options.layout) this.layout(options.layout);
-    
+
     return this;
 }
 
@@ -64,7 +61,7 @@ Taft.prototype.layout = function(layout) {
 
     this.applyLayout = function(content, pageData) {
         Handlebars.registerPartial('body', content);
-
+        this.debug('applying ' + layout);
         try {
             // override passed pageData with global data,
             // then append it in a page key
@@ -109,77 +106,82 @@ Taft.prototype.template = function(file) {
     return _template;
 };
 
-/*  
+Taft.prototype.extend = function(result) {
+    extend(this._data, result);
+};
+
+/*
     Takes a mixed list of (1) files, (2) js objects, (3) JSON, (4) YAML
 */
 Taft.prototype.data = function() {
     var args = Array.prototype.concat.apply([], Array.prototype.slice.call(arguments));
 
-    var parse = function(datum) {
-        return this._parseData(datum);
+    var parse = function(item, callback) {
+        var result = this._parseData(item);
+        callback(null, result);
     };
 
-    var callback = extendData.bind(this);
-    parse = parse.bind(this);
+    var callback = function(err, results) {
+        if (err) this.stderr(err);
+        else results.forEach(this.extend.bind(this));
+        this.emit('ready', this);
+    };
 
-    async.map(args, parse, callback);
+    async.map(args, parse.bind(this), callback.bind(this));
 
     return this;
 };
 
-Taft.prototype._parseData = function(source) {
-    var result;
+Taft.prototype._parseData = function(source, base, noLoop) {
+    var result = {}, sink = {};
+
+    if (typeof(source) === 'string') source = source.trim();
 
     try {
         if (typeof(source) === 'object')
-            result = source;
+            sink = source;
 
         else if (source.substr(0, 3) === '---')
-            result = yaml.safeLoad(source);
+            sink = yaml.safeLoad(source);
 
         else if (source.slice(0, 1) == '{' && source.slice(-1) == '}')
-            result = JSON.parse(source);
+            sink = JSON.parse(source);
 
         else
             throw "Didn't recognize format";
 
     } catch (e) {
-        this.debug('Reading ' + source + ' as a file');
-        result = this.readFile(source);
+        this.debug('Reading ' + source + ' as a file (' + e + ')');
+        if (noLoop !== true) this.readFile(source);
     }
+
+    if (base) result[base] = sink;
+    else result = sink;
 
     return result;
 };
 
 Taft.prototype.readFile = function(filename) {
-    var formats = ['.json', '.yaml'];
-    var result = {};
-
-    var parseWithBase = (function(data) {
-        var base = path.basename(filename, path.extname(filename));
-        result = this.parseData(data, base);
-    }).bind(this);
+    var formats = ['.json', '.yaml'],
+        result = {},
+        parseWithBase = function(err, data) {
+            if (err) throw err;
+            var base = path.basename(filename, path.extname(filename));
+            result = this._parseData(data, base, true);
+            this.extend(result);
+        };
 
     try {
         if (formats.indexOf(path.extname(filename)) < 0)
             throw "Didn't recognize file type.";
 
-        var stream = fs.createReadStream(filename, {encoding: 'utf8'});
-
-        stream.on('error', function(e) { throw e; });
-
-        stream.pipe(concat(parseWithBase));
+        var stream = fs.readFile(filename, {encoding: 'utf8'}, parseWithBase.bind(this));
 
     } catch (err) {
-        result = {};
-
         if (err.code == 'ENOENT') this.stderr("Couldn't find data file: " + filename);
         else this.stderr("Problem reading data file: " + filename);
-
         this.stderr(err);
     }
-
-    return result;
 };
 
 Taft.prototype.build = function(file, data) {

@@ -13,6 +13,7 @@ var path = require('path'),
 
 function mergeGlob(val, list) {
     var globbed = Array.isArray(val) ? val : glob.sync(val);
+    globbed = globbed.length ? globbed : [val];
     list = Array.prototype.concat.apply(list || [], globbed);
     return list;
 }
@@ -117,30 +118,35 @@ if (files.indexOf('-') > -1) {
 
 var taft = new Taft(options);
 
-// render output
-try {
-    if (program.output === '-')
-        try {
-            console.log(taft.build(files[0]));
+taft.on('ready', function() {
+    console.log('hi');
+    // render output
+    try {
+        if (program.output === '-')
+            try {
+                console.log(taft.build(files[0]));
 
-        } catch (e) {
-            if (e.message === 'path must be a string')
-                console.error('Error reading input');
-            else
-                console.error(e);
+            } catch (e) {
+                if (e.message === 'path must be a string')
+                    console.error('Error reading input');
+                else
+                    console.error(e);
 
-            process.exit(1);
-        }
+                process.exit(1);
+            }
 
-    else
-        files.forEach(function(file) {
-            var f = outFile(program.destDir, file, ext);
+        else
+            files.forEach(function(file) {
+                var f = outFile(program.destDir, file, ext);
 
-            if (!program.silent) console.log(f);
+                if (!program.silent) console.log(f);
 
-            fs.writeFile(f, taft.build(file), logErr);
-        });
+                fs.writeFile(f, taft.build(file), logErr);
+            });
 
-} catch(err) {
-    taft.stderr(err);
-}
+    } catch(err) {
+        taft.stderr(err);
+    }
+
+
+});
