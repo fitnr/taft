@@ -328,15 +328,16 @@ Taft.prototype.partials = function(partials) {
     if (Array.isArray(partials)) {
         partials = mergeGlob(partials);
 
-        for (var i = 0, len = partials.length, p; i < len; i++){
-            p = base(partials[i]);
+        partials.forEach((function(partial){
+            var p = base(partial);
             try {
-                Handlebars.registerPartial(p, fs.readFileSync(partials[i], {encoding: 'utf-8'}));
+                Handlebars.registerPartial(p, fs.readFileSync(partial, {encoding: 'utf-8'}));
                 registered.push(p);
             } catch (err) {
                 this.stderr("Could not register partial: " + p);
             }
-        }
+        }).bind(this));
+
     } else if (typeof(partials) === 'object')
         for (var name in partials)
             if (partials.hasOwnProperty(name))
