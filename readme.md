@@ -82,6 +82,43 @@ $ taft --layout layouts/template.hbs source/page1.hbs > build/page1.html
 <script src="main.js"></script>
 ````
 
+It more than one layout is registered, specify the one to use with `layout: <name>` in the page's front matter.
+If a layout named 'default' is registered, it will be used even with a page doesn't have a layout key.
+
+````
+$ taft --layout layouts/default.hbs --layout layouts/potions.hbs 
+    source/page1.hbs source/page2.hbs source/page3.hbs -C _source -D build
+````
+
+````yaml
+---
+# source/page1.hbs
+# This page will be built with the 'default' layout
+title: My Favorite Encantations
+---
+Encantations...
+````
+
+````yaml
+---
+# source/page2.hbs
+# This page will be built with the 'potions' layout
+title: Special Potions
+layout: potions
+---
+Potions...
+````
+
+````yaml
+---
+# source/page3.hbs
+# This page will be built without a layout
+layout: none
+title: Super-Special Page
+---
+Special Stuff...
+````
+
 ### Partials
 Taft will register partials from one or more files.
 
