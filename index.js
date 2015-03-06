@@ -117,27 +117,33 @@ Taft.prototype.data = function() {
     return this;
 };
 
-Taft.prototype._parseData = function(source, base) {
+/*
+ * base and ext are used by readFile
+*/
+Taft.prototype._parseData = function(source, base, ext) {
     var sink, result = {};
 
-    if (typeof(source) === 'string') { source = source.trim(); }
+    if (typeof(source) === 'object')
+        sink = source;
 
-    try {
-        if (typeof(source) === 'object')
-            sink = source;
+    else if (typeof(source) === 'string') {
+        source = source.trim();
 
-        else if (source.substr(0, 3) === '---')
-            sink = yaml.safeLoad(source);
+        try {
+            if (ext === '.yaml' || source.substr(0, 3) === '---')
+                sink = yaml.safeLoad(source);
 
-        else if (source.slice(0, 1) == '{' && source.slice(-1) == '}')
-            sink = JSON.parse(source);
+            else if (ext === '.json' || source.slice(-1) === '}' || source.slice(-1) === ']')
+                sink = JSON.parse(source);
 
-        else
-            throw "Didn't recognize format";
+            else if (typeof(ext) === 'undefined')
+                sink = this.readFile(source);
 
-    } catch (e) {
-        this.debug('Reading ' + source + ' as a file');
-        sink = this.readFile(source);
+            else throw 1;
+
+        } catch (e) {
+            this.stdout("Didn't recognize format of " + source);
+        }
     }
 
     if (base) result[base] = sink;
@@ -150,15 +156,18 @@ Taft.prototype.readFile = function(filename) {
     var formats = ['.json', '.yaml'];
     var result = {};
 
+    this.debug('Reading file ' + filename);
+
     try {
-        if (formats.indexOf(path.extname(filename)) < 0)
-            throw "Didn't recognize file type.";
+        var ext = path.extname(filename);
 
-        var data = fs.readFileSync(filename, {encoding: 'utf8'});
+        if (formats.indexOf(ext) < 0)
+            throw "Didn't recognize file type " + ext;
 
-        var base = path.basename(filename, path.extname(filename));
+        var data = fs.readFileSync(filename, {encoding: 'utf8'}),
+            base = path.basename(filename, ext);
 
-        result = this._parseData(data, base);
+        result = this._parseData(data, base, ext);
 
     } catch (err) {
         result = {};
