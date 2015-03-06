@@ -38,7 +38,7 @@ program
 function parseStdin(datasources) {
     return datasources.map(function(source) {
         if (source === '-' || source.match(STDIN_RE))
-            source = source.slice(-1) + '/dev/stdin';
+            source = source.slice(0, 1) + '/dev/stdin';
 
         return source;
     });
