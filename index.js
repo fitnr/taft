@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 
-var fs = require('fs'),
+var fs = require('rw'),
     path = require('path'),
     extend = require('extend'),
     clone = require('clone-object'),
@@ -9,6 +9,8 @@ var fs = require('fs'),
     // HH = require('handlebars-helpers'),
     yaml = require('js-yaml'),
     YFM = require('yfm');
+
+var STDIN_RE = /^\w+:\/dev\/stdin/;
 
 module.exports = taft;
 
@@ -77,9 +79,12 @@ Taft.prototype.layout = function(layout) {
 Taft.prototype.template = function(file) {
     var raw;
 
+    this.debug('reading ' + file);
+
     try {
         raw = fs.readFileSync(file, {encoding: 'utf8'});
     } catch (err) {
+        this.debug(err);
         if (err.code == 'ENOENT') raw = file;
         else throw(err);
     }
@@ -154,18 +159,26 @@ Taft.prototype._parseData = function(source, base, ext) {
 
 Taft.prototype.readFile = function(filename) {
     var formats = ['.json', '.yaml'];
-    var result = {};
+    var result = {}, base;
 
     this.debug('Reading file ' + filename);
 
     try {
         var ext = path.extname(filename);
 
-        if (formats.indexOf(ext) < 0)
-            throw "Didn't recognize file type " + ext;
+        if (filename.match(STDIN_RE)) {
+            base = filename.split(':').shift();
+            filename = '/dev/stdin';
 
-        var data = fs.readFileSync(filename, {encoding: 'utf8'}),
+        } else {
+
+            if (formats.indexOf(ext) < 0)
+                throw "Didn't recognize file type " + ext;
+
             base = path.basename(filename, ext);
+        }
+
+        var data = fs.readFileSync(filename, {encoding: 'utf8'});
 
         result = this._parseData(data, base, ext);
 

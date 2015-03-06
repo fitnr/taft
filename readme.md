@@ -48,6 +48,14 @@ Specifying a single output file with `--output`:
 $ taft source/page1.hbs -o build/page1.html
 build/page1.html
 ````
+
+Read from stdin by giving '-' as the file name.
+
+````
+# useless use of cat
+$ cat source/page1.hbs | taft - > build/page1.html
+````
+
 ### Layouts
 Use a layout (aka template) to wrap a file with content. The layout should use the `{{> body}}` helper to refer to the content.
 
@@ -131,6 +139,17 @@ In addition to the YAML front matter in layouts and pages, Taft will read data f
 ````
 $ taft --data data/data.yaml source/page1.hbs > build/page1.hbs
 $ echo '{"workplace": "haunted forest"}' | taft --data - source/page2.hbs > build/page2.hbs
+````
+
+Data read from stdin can be placed in a named object using the format `key:-`.
+
+````
+$ echo '["guffaw", "cackle"]' | taft --data laughs:- source/page2.hbs > build/page2.hbs
+````
+````handlebars
+{{#laughs}}
+    // do stuff
+{{/laugh}}
 ````
 
 ### Other options

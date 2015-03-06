@@ -34,6 +34,7 @@
     "handlebars": "^3.0.0",
     "js-yaml": "^3.2.7",
     "minimatch": "^2.0.1",
+    "rw": "^0.1.4",
     "yfm": "^0.2.0"
   },
   "devDependencies": {

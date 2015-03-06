@@ -4,6 +4,7 @@
 
 var path = require('path'),
     fs = require('fs'),
+    rw = require('rw'),
     concat = require('concat-stream'),
     program = require('commander'),
     glob = require('glob'),
@@ -29,7 +30,7 @@ program
     .option('-p, --partial <file>', 'partial (globs are ok)', mergeGlob, [])
     .option('-d, --data <data>', 'JSON or YAML data.', mergeGlob, [])
     .option('-o, --output <path>', 'output file', String, '-')
-    .option('-D, --dest-dir <path>', 'output directory (mandatory if more than one file given)', String, '.')
+    .option('-D, --dest-dir <path>', 'output directory (mandatory if more than one file given)', String)
     .option('-e, --ext <string>', 'output file extension (default: html)', String, 'html')
     .option('-v, --verbose', 'Output some debugging information')
     .option('-s, --silent', "Don't output anything")
@@ -37,25 +38,11 @@ program
 
 function parseStdin(datasources) {
     return datasources.map(function(source) {
-        if (source === '-' || source.match(STDIN_RE)) {
-            var result = {},
-                sink = source === '-' ? result : result[source.slice(0, -2)];
+        if (source === '-' || source.match(STDIN_RE))
+            source = source.slice(-1) + '/dev/stdin';
 
-            process.stdin.pipe(concat(function(data) {
-                sink = Taft.prototype.parseData(data);
-            }));
-            source = result;
-        }
         return source;
     });
-}
-
-function outFile(outpath, file, ext) {
-    return path.join(outpath, path.basename(file, path.extname(file)) + '.' + ext);
-}
-
-function logErr(err) {
-    if (err) console.error(err);
 }
 
 // expand files
@@ -67,36 +54,50 @@ program.args.forEach(function(arg) {
 
 // check arguments
 var err = '', warn = '';
-if (files.length === 0)
+
+if (files.length === 0) {
     err += 'error - please provide an input file\n';
+}
 
+// Lists of files SHOULD have a dest dir, and if a dest dir, if MUST exist
+if (files.length > 1) {
+    if (!program.destDir)
+        warn += 'warning - Writing multiple files without --dest-dir\n';
+    else if (!fs.lstatSync(program.destDir).isDirectory())
+        err += 'error - output directory not found\n';
+}
+
+// If STDIN is given, it MUST not also be given in data
 if (files.indexOf('-') > -1) {
-    if (files.length > 1) {
-        warn += "warning - ignoring stdin because other files given";
-        files.splice(files.indexOf('-'), 1);
-    }
-
     if (
         program.data.indexOf('-') > -1 ||
         program.data.some(function(x){ return String(x).match(STDIN_RE); })
     ) {
         err += "error - can't read from stdin twice";
     }
-}
 
-try {
-    if (!fs.lstatSync(program.destDir).isDirectory())
-        throw 'not a directory';
-} catch (e) {
-    err += 'error - output directory not found\n';
+    files[files.indexOf('-')] = "/dev/stdin";
 }
 
 if (err || warn) {
-    console.error(err || warn);
+    console.error(err + warn);
     if (err) process.exit(1);
 }
 
-//setup options
+// handle stdout
+if (program.output === '-') program.output = '/dev/stdout';
+
+// remove . from extension
+var ext = (program.ext.slice(0, 1) === '.') ? program.ext.slice(1) : program.ext;
+
+function outFilePath(file) {
+    if (program.destDir)
+        return path.join(program.destDir, path.basename(file, path.extname(file)) + '.' + ext);
+
+    else return program.output;
+}
+
+// setup options
 var options = {
         layout: program.layout || undefined,
         partials: program.partial ? mergeGlob(program.partial) : undefined,
@@ -106,40 +107,16 @@ var options = {
         silent: program.silent || false,
     };
 
-var ext = (program.ext.slice(0, 1) === '.') ? program.ext.slice(1) : program.ext;
-
-// read STDIN if necessary
-if (files.indexOf('-') > -1)
-    process.stdin.pipe(concat(function(data){
-        files[files.indexOf('-')] = data;
-    }));
-
+// render output
 var taft = new Taft(options);
 
-// render output
-try {
-    if (program.output === '-')
-        try {
-            console.log(taft.build(files[0]));
+files.forEach(function(file) {
+    var f = outFilePath(file);
 
-        } catch (e) {
-            if (e.message === 'path must be a string')
-                console.error('Error reading input');
-            else
-                console.error(e);
+    if (!program.silent && program.output !== '/dev/stdout')
+        console.log(f);
 
-            process.exit(1);
-        }
-
-    else
-        files.forEach(function(file) {
-            var f = outFile(program.destDir, file, ext);
-
-            if (!program.silent) console.log(f);
-
-            fs.writeFile(f, taft.build(file), logErr);
-        });
-
-} catch(err) {
-    taft.stderr(err);
-}
+    rw.writeFileSync(f, taft.build(file), {encoding:'utf8'}, function(err) {
+        if (err) console.error(err);
+    });
+});
