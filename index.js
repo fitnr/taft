@@ -10,6 +10,7 @@ var fs = require('rw'),
     Handlebars = require('handlebars'),
     // HH = require('handlebars-helpers'),
     Template = require('./lib/template'),
+    ini = require('ini'),
     yaml = require('js-yaml'),
     YFM = require('yfm');
 
@@ -181,7 +182,7 @@ Taft.prototype.template = function(name, file) {
 };
 
 /*
-    Takes a mixed list of (1) files, (2) js objects, (3) JSON, (4) YAML
+    Takes a mixed list of (1) files, (2) js objects, (3) JSON, (4) YAML, (5) INI
 */
 Taft.prototype.data = function() {
     var args = Array.prototype.concat.apply([], Array.prototype.slice.call(arguments));
@@ -210,12 +211,17 @@ Taft.prototype._parseData = function(source, base, ext) {
     else if (typeof(source) === 'string') {
         source = source.trim();
 
+        var line1 = source.slice(0, 1024).split(/\r?\n/).shift();
+
         try {
-            if (ext === '.yaml' || source.substr(0, 3) === '---')
+            if (ext === '.yaml' || line1 === '---')
                 sink = yaml.safeLoad(source);
 
             else if (ext === '.json' || source.slice(-1) === '}' || source.slice(-1) === ']')
                 sink = JSON.parse(source);
+
+            else if (ext === '.ini' || line1.slice(0, 1) === ';' || line1.match(/^[.+]$/) || line1.match(/^\w+ ?=/))
+                sink = ini.decode(source);
 
             else if (typeof(ext) === 'undefined')
                 sink = this.readFile(source);

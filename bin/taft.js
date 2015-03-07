@@ -24,7 +24,7 @@ program
     .description('Render files with Handlebars')
     .option('-H, --helper <file>', 'js file that exports an object containing handlebars helpers', collect, [])
     .option('-p, --partial <file>', 'partial (globs are ok)', collect, [])
-    .option('-d, --data <data>', 'JSON or YAML data.', collect, [])
+    .option('-d, --data <data>', 'JSON, YAML or INI file or data (stdin with \'-\')', collect, [])
     .option('-t, --layout <file>', 'layout (template) file', collect, [])
     .option('-y, --default-layout <name>', 'use this layout as default', String)
     .option('-o, --output <path>', 'output file', String, '-')
