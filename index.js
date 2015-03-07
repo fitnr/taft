@@ -9,6 +9,7 @@ var fs = require('rw'),
     clone = require('clone-object'),
     Handlebars = require('handlebars'),
     // HH = require('handlebars-helpers'),
+    Template = require('./lib/template'),
     yaml = require('js-yaml'),
     YFM = require('yfm');
 
@@ -75,6 +76,9 @@ function Taft(options) {
     return this;
 }
 
+/* 
+ * Layouts are just templates of a different name
+*/
 Taft.prototype.layouts = function(layouts) {
     if (typeof(layouts) === 'string')
         layouts = [layouts];
@@ -82,18 +86,10 @@ Taft.prototype.layouts = function(layouts) {
     layouts = mergeGlob(layouts);
 
     layouts.forEach((function(layout) {
+        this.debug('Adding layout: ' + name);
 
         var name = base(layout);
-
-        var t = new Taft({
-                silent: this.silent,
-                verbose: this.verbose
-            }).data(this._data)
-            .template(name, layout);
-
-        this._layouts[name] = t._templates[name];
-
-        this.debug('Adding layout: ' + name);
+        this._layouts[name] = this._createTemplate(name, layout);
     }).bind(this));
 
     // as a convenience, when there's only one layout, that will be the default
@@ -109,16 +105,19 @@ Taft.prototype._applyLayout = function(name, content, pageData) {
     Handlebars.registerPartial('body', content);
 
     try {
-        // override passed pageData with global data,
+        // override passed pageData with global data
+        // (because layout is 'closer' to core of things)
         // then append it in a page key
-        var data = extend(clone(pageData), this._data, {page: pageData}),
-            page = this._layouts[name](data);
+        pageData.page = clone(pageData);
+
+        var page = this._layouts[name].build(pageData, false);
 
         Handlebars.registerPartial('body', '');
 
         return page;
 
     } catch (e) {
+        Handlebars.registerPartial('body', '');
         throw 'Unable to render page: ' + e.message;
     }
 };
@@ -145,6 +144,27 @@ Taft.prototype._layoutName = function(templatename, layout) {
  * Taft.template(name, file) // will create a template named 'name' from file
  * Taft.template(file) // will create a template named $(basename file)
  */
+Taft.prototype._createTemplate = function(name, file) {
+    var raw;
+
+    try {
+        raw = fs.readFileSync(file, {encoding: 'utf8'});
+    } catch (err) {
+        this.debug(err);
+        if (err.code == 'ENOENT') raw = file;
+        else throw err;
+    }
+
+    var source = YFM(raw);
+
+    // class data extended by current context
+    return new Template(Handlebars, source.content.trimLeft(), {
+        data: extend(clone(this._data), source.context),
+        layout: this._layoutName(name, source.context.layout),
+        helpers: this._helpers,
+    });
+};
+
 Taft.prototype.template = function(name, file) {
     if (!file) {
         file = name;
@@ -153,29 +173,9 @@ Taft.prototype.template = function(name, file) {
 
     var raw;
 
-    try {
-        this.debug('reading ' + name +' from ' + file);
-        raw = fs.readFileSync(file, {encoding: 'utf8'});
-    } catch (err) {
-        this.debug(err);
-        if (err.code == 'ENOENT') raw = file;
-        else throw err;
-    }
+    this.debug('Creating template ' + name +' from ' + file);
 
-    var source = YFM(raw),
-        // class data extended by current context
-        compile = Handlebars.compile(source.content.trimLeft(), {knownHelpers: this._helpers});
-
-    this._templates[name] = function(d) {
-        var data = extend(this._templates[name].data(), d || {});
-        return compile(data);
-    };
-
-    this._templates[name].data = function() {
-        extend(clone(this._data), source.context);
-    };
-
-    this._templates[name].layout = this._layoutName(name, source.context.layout);
+    this._templates[name] = this._createTemplate(name, file);
 
     return this;
 };
@@ -275,15 +275,13 @@ Taft.prototype.build = function(file, data) {
     this.stderr('building: ' + file);
 
     var name = base(file);
-
     if (!this._templates[name]) this.template(name, file);
-    var template = this._templates[name],
-        content = template(file);
 
-    if (this._layouts[template.layout]) {
-        var d = extend(template.data(), data || {});
-        content = this._applyLayout(template.layout, content, d);
-    }
+    var tpl = this._templates[name],
+        content = tpl.build(data);
+
+    if (this._layouts[tpl.layout])
+        content = this._applyLayout(tpl.layout, content, extend(tpl.data(), data))
 
     return content;
 };
