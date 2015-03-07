@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+
 'use strict';
 
 var fs = require('rw'),
@@ -19,10 +20,13 @@ function base(file) { return path.basename(file, path.extname(file)); }
 
 function mergeGlob(list) {
     if (!Array.isArray(list)) list = [list];
-    list = list.map(function(e){
+    list = list.map(function(e) {
         var globbed;
-        try { globbed = glob.sync(e); }
-        catch (e) { globbed = []; }
+        try {
+            globbed = glob.sync(e);
+        } catch (e) {
+            globbed = [];
+        }
         return globbed.length ? globbed : e;
     });
     list = Array.prototype.concat.apply([], list);
@@ -77,7 +81,7 @@ Taft.prototype.layouts = function(layouts) {
 
     layouts = mergeGlob(layouts);
 
-    layouts.forEach((function(layout){
+    layouts.forEach((function(layout) {
 
         var name = base(layout);
 
@@ -115,7 +119,7 @@ Taft.prototype._applyLayout = function(name, content, pageData) {
         return page;
 
     } catch (e) {
-        throw('Unable to render page: ' + e.message);
+        throw 'Unable to render page: ' + e.message;
     }
 };
 
@@ -155,7 +159,7 @@ Taft.prototype.template = function(name, file) {
     } catch (err) {
         this.debug(err);
         if (err.code == 'ENOENT') raw = file;
-        else throw(err);
+        else throw err;
     }
 
     var source = YFM(raw),
@@ -184,7 +188,7 @@ Taft.prototype.data = function() {
 
     args = mergeGlob(args);
 
-    var parseExtend = function(argument){
+    var parseExtend = function(argument) {
         var r = this._parseData(argument);
         extend(this._data, r);
     };
@@ -196,7 +200,7 @@ Taft.prototype.data = function() {
 
 /*
  * base and ext are used by readFile
-*/
+ */
 Taft.prototype._parseData = function(source, base, ext) {
     var sink, result = {};
 
@@ -231,7 +235,8 @@ Taft.prototype._parseData = function(source, base, ext) {
 
 Taft.prototype.readFile = function(filename) {
     var formats = ['.json', '.yaml'];
-    var result = {}, base;
+    var result = {},
+        base;
 
     this.debug('Reading file ' + filename);
 
@@ -311,14 +316,14 @@ Taft.prototype.helpers = function(helpers) {
 Taft.prototype.registerHelperFiles = function(helpers) {
     var registered = [];
 
-    helpers.forEach((function(h){
+    helpers.forEach((function(h) {
         var module;
         try {
             try {
                 module = require(path.join(process.cwd(), h));
 
             } catch (err) {
-                if (err.code === 'MODULE_NOT_FOUND') 
+                if (err.code === 'MODULE_NOT_FOUND')
                     module = require(h);
             }
 
@@ -353,7 +358,7 @@ Taft.prototype.partials = function(partials) {
     if (Array.isArray(partials)) {
         partials = mergeGlob(partials);
 
-        partials.forEach((function(partial){
+        partials.forEach((function(partial) {
             var p = base(partial);
             try {
                 Handlebars.registerPartial(p, fs.readFileSync(partial, {encoding: 'utf-8'}));
@@ -373,13 +378,13 @@ Taft.prototype.partials = function(partials) {
     return this;
 };
 
-Taft.prototype.stderr = function (err) {
+Taft.prototype.stderr = function(err) {
     if (!this.silent) {
         err = err.hasOwnProperty('message') ? err.message : err;
         console.error(err);
     }
 };
 
-Taft.prototype.debug = function (msg) {
+Taft.prototype.debug = function(msg) {
     if (this.verbose && !this.silent) console.error(msg);
 };
