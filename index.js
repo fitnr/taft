@@ -318,11 +318,12 @@ Taft.prototype.helpers = function(helpers) {
 };
 
 Taft.prototype.registerHelperFiles = function(helpers) {
-    var registered = [];
+    var current = Object.keys(Handlebars.helpers);
 
     helpers.forEach((function(h) {
         var module;
         try {
+            // load the module
             try {
                 module = require(path.join(process.cwd(), h));
 
@@ -331,15 +332,15 @@ Taft.prototype.registerHelperFiles = function(helpers) {
                     module = require(h);
             }
 
-            if (typeof(module) === 'function') {
-                module(Handlebars, this._options);
-                registered = registered.concat(base(h));
-            }
+            // register the module one of a couple of ways
+            if (module.register)
+                module.register(Handlebars, this._options);
 
-            else if (typeof(module) === 'object') {
+            else if (typeof(module) === 'function')
+                module(Handlebars, this._options);
+
+            else if (typeof(module) === 'object')
                 Handlebars.registerHelper(module);
-                registered = Array.prototype.concat.apply(registered, Object.keys(module));
-            }
 
             else
                 throw "not a function or object.";
@@ -351,7 +352,10 @@ Taft.prototype.registerHelperFiles = function(helpers) {
 
     }).bind(this));
 
-    return registered;
+    // return new helpers
+    return Object.keys(Handlebars.helpers).filter(function(e) {
+        return current.indexOf(e) === -1;
+    });
 };
 
 Taft.prototype.partials = function(partials) {
