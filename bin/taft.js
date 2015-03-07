@@ -22,10 +22,11 @@ program
     .version('0.0.2')
     .usage('[options] <file ...>')
     .description('Render files with Handlebars')
-    .option('-t, --layout <file>', 'layout (template) file', collect, [])
     .option('-H, --helper <file>', 'js file that exports an object containing handlebars helpers', collect, [])
     .option('-p, --partial <file>', 'partial (globs are ok)', collect, [])
     .option('-d, --data <data>', 'JSON or YAML data.', collect, [])
+    .option('-t, --layout <file>', 'layout (template) file', collect, [])
+    .option('-y, --default-layout <name>', 'use this layout as default', String)
     .option('-o, --output <path>', 'output file', String, '-')
     .option('-D, --dest-dir <path>', 'output directory (mandatory if more than one file given)', String)
     .option('-e, --ext <string>', 'output file extension (default: html)', String, 'html')
@@ -98,6 +99,7 @@ var options = {
         helpers: program.helper || undefined,
         verbose: program.verbose || false,
         silent: program.silent || false,
+        defaultLayout: program.defaultLayout || undefined,
     };
 
 // render output

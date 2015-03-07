@@ -61,9 +61,13 @@ function Taft(options) {
 
     // layouts
     this._layouts = {};
+
+    this._defaultLayout = this._options.defaultLayout || 'default';
+    this.defaultLayout = this._defaultLayout.slice();
+
     Handlebars.registerPartial('body', '');
-    this.layouts(this._options.layouts || [])
-    
+    this.layouts(this._options.layouts || []);
+
     return this;
 }
 
@@ -88,6 +92,12 @@ Taft.prototype.layouts = function(layouts) {
         this.debug('Adding layout: ' + name);
     }).bind(this));
 
+    // as a convenience, when there's only one layout, that will be the default
+    if (Object.keys(this._layouts).length === 1)
+        this.defaultLayout = Object.keys(this._layouts).pop();
+    else
+        this.defaultLayout = this._defaultLayout.slice();
+
     return this;
 };
 
@@ -107,6 +117,24 @@ Taft.prototype._applyLayout = function(name, content, pageData) {
     } catch (e) {
         throw('Unable to render page: ' + e.message);
     }
+};
+
+/*
+ * Determine the correct layout name to use for a template and a possible layout key
+ * no nesting! default layout doesn't get layout
+ * Otherwise a given layout works.
+ * if not: the default;
+ */
+Taft.prototype._layoutName = function(templatename, layout) {
+    var name;
+
+    if (templatename === 'default') name = undefined;
+
+    else if (layout) name = layout;
+
+    else name = this.defaultLayout;
+
+    return name;
 };
 
 /**
@@ -130,11 +158,7 @@ Taft.prototype.template = function(name, file) {
         else throw(err);
     }
 
-    var source = YFM(raw), _layout_name;
-
-    // no nesting! default layout doesn't get layout;
-    if (name === 'default') _layout_name = undefined;
-    else _layout_name = source.context.layout || 'default'; 
+    var source = YFM(raw);
 
     // class data extended by current context
     var data = extend(source.context, this._data),
@@ -146,7 +170,8 @@ Taft.prototype.template = function(name, file) {
     };
 
     this._templates[name].data = _data;
-    this._templates[name].layout = _layout_name;
+
+    this._templates[name].layout = this._layoutName(name, source.context.layout);
 
     return this;
 };
