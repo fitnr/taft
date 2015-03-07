@@ -15,7 +15,7 @@ var STDIN_RE = /^\w+:\/dev\/stdin/;
 
 module.exports = taft;
 
-function base(file) { return path.basename(file, path.extname(file)); };
+function base(file) { return path.basename(file, path.extname(file)); }
 
 function mergeGlob(list) {
     if (!Array.isArray(list)) list = [list];
@@ -158,18 +158,18 @@ Taft.prototype.template = function(name, file) {
         else throw(err);
     }
 
-    var source = YFM(raw);
-
-    // class data extended by current context
-    var data = extend(source.context, this._data),
-        _data = function() { return clone(data); },
+    var source = YFM(raw),
+        // class data extended by current context
         compile = Handlebars.compile(source.content.trimLeft(), {knownHelpers: this._helpers});
 
-    this._templates[name] = function(data) {
-        return compile(extend(_data(), data || {}));
+    this._templates[name] = function(d) {
+        var data = extend(this._templates[name].data(), d || {});
+        return compile(data);
     };
 
-    this._templates[name].data = _data;
+    this._templates[name].data = function() {
+        extend(clone(this._data), source.context);
+    };
 
     this._templates[name].layout = this._layoutName(name, source.context.layout);
 
