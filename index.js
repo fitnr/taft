@@ -87,10 +87,9 @@ Taft.prototype.layouts = function(layouts) {
     layouts = mergeGlob(layouts);
 
     layouts.forEach((function(layout) {
-        this.debug('Adding layout: ' + name);
-
         var name = base(layout);
-        this._layouts[name] = this._createTemplate(name, layout);
+        this.debug('Adding layout ' + name);
+        this._layouts[name] = this._createTemplate(layout);
     }).bind(this));
 
     // as a convenience, when there's only one layout, that will be the default
@@ -119,64 +118,38 @@ Taft.prototype._applyLayout = function(name, content, pageData) {
 
     } catch (e) {
         Handlebars.registerPartial('body', '');
+        this.stderr(e);
         throw 'Unable to render page: ' + e.message;
     }
 };
 
-/*
- * Determine the correct layout name to use for a template and a possible layout key
- * no nesting! default layout doesn't get layout
- * Otherwise a given layout works.
- * if not: the default;
- */
-Taft.prototype._layoutName = function(templatename, layout) {
-    var name;
-
-    if (templatename === 'default') name = undefined;
-
-    else if (layout) name = layout;
-
-    else name = this.defaultLayout;
-
-    return name;
-};
-
 /**
- * Taft.template(name, file) // will create a template named 'name' from file
- * Taft.template(file) // will create a template named $(basename file)
+ * Taft._createTemplate(file, options) 
+ * returns a template named (path.resolve(file))
  */
-Taft.prototype._createTemplate = function(name, file) {
-    var raw;
+Taft.prototype._createTemplate = function(file, options) {
 
-    try {
-        raw = fs.readFileSync(file, {encoding: 'utf8'});
-    } catch (err) {
-        this.debug(err);
-        if (err.code == 'ENOENT') raw = file;
-        else throw err;
-    }
+    var source = YFM.read(file);
 
-    var source = YFM(raw);
+    var layout;
+    if (source.context.layout)
+        layout = (source.context.layout === this.defaultLayout) ? undefined : this.defaultLayout;
 
     // class data extended by current context
     return new Template(Handlebars, source.content.trimLeft(), {
         data: extend(clone(this._data), source.context),
-        layout: this._layoutName(name, source.context.layout),
+        layout: layout,
         helpers: this._helpers,
     });
 };
 
-Taft.prototype.template = function(name, file) {
-    if (!file) {
-        file = name;
-        name = base(name);
-    }
-
-    var raw;
-
-    this.debug('Creating template ' + name +' from ' + file);
-
-    this._templates[name] = this._createTemplate(name, file);
+/**
+ * Taft.template(file) 
+ * Creates a template named (path.resolve(file))
+ */
+Taft.prototype.template = function(file) {
+    this.debug('Parsing ' + file);
+    this._templates[path.resolve(file)] = this._createTemplate(file);
 
     return this;
 };
@@ -280,14 +253,13 @@ Taft.prototype.readFile = function(filename) {
 Taft.prototype.build = function(file, data) {
     this.stderr('building: ' + file);
 
-    var name = base(file);
-    if (!this._templates[name]) this.template(name, file);
+    if (!this._templates[path.resolve(file)]) this.template(file);
 
-    var tpl = this._templates[name],
+    var tpl = this._templates[file],
         content = tpl.build(data);
 
     if (this._layouts[tpl.layout])
-        content = this._applyLayout(tpl.layout, content, extend(tpl.data(), data))
+        content = this._applyLayout(tpl.layout, content, extend(tpl.data(), data));
 
     return content;
 };
