@@ -111,7 +111,7 @@ Taft.prototype._applyLayout = function(name, content, pageData) {
         // then append it in a page key
         pageData.page = clone(pageData);
 
-        var page = this._layouts[name].build(pageData, false);
+        var page = this._layouts[name].build(pageData, {noOverride: true});
 
         Handlebars.registerPartial('body', '');
 
