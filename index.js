@@ -32,6 +32,7 @@ function mergeGlob(list) {
         return globbed.length ? globbed : e;
     });
     list = Array.prototype.concat.apply([], list);
+
     return list.filter(function(e, pos) { return list.indexOf(e) === pos; });
 }
 
@@ -51,12 +52,12 @@ function Taft(options) {
 
     // data
     this._data = {};
-    this.data(this._options.data || {});
+    this.data(this._options.data || []);
 
     // helpers
     // uncomment when HH 0.6.0 is out
     // HH.register(Handlebars, {});
-    this._knownHelpers = {};
+    this._knownHelpers = [];
     this.helpers(this._options.helpers || {});
 
     // partials
@@ -125,7 +126,7 @@ Taft.prototype._applyLayout = function(name, content, pageData) {
 
 /**
  * Taft._createTemplate(file, options) 
- * returns a template named (path.resolve(file))
+ * returns a template object named (path.resolve(file))
  */
 Taft.prototype._createTemplate = function(file, options) {
 

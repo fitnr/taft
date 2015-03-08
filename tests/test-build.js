@@ -2,6 +2,7 @@
 
 var should = require('should');
 var fs = require('fs');
+var path = require('path');
 var taft = require('..');
 
 var options = {
@@ -14,32 +15,6 @@ var options = {
     ],
     verbose: 0
 };
-
-describe('Taft building without layout', function(){
-
-    before(function(){
-        this.options = options;
-        this.options.layouts = undefined;
-        this.T = taft.Taft(this.options);
-        this.fixture = fs.readFileSync(__dirname + '/fixtures/no-layout.html', {encoding: 'utf-8'});
-
-        this.result = this.T.build(__dirname + '/pages/test.handlebars');
-    });
-
-    it('should return a string', function(){
-        this.result.should.be.a.String;
-    });
-
-    it('should match fixture', function(){
-        try {
-            this.result.should.equal(this.fixture);
-        } catch (e) {
-            console.error('did not match');
-            throw e;
-        }
-
-    });
-});
 
 
 describe('Taft building with layout', function(){
@@ -54,7 +29,12 @@ describe('Taft building with layout', function(){
         this.T._layouts.should.have.property('default');
     });
 
+    it('should have the defaultLayout', function(){
+        this.T.defaultLayout.should.equal('default');
+    });
+
     it('should match fixture', function(){
+        this.T.verbose = true;
         this.result = this.T.build(__dirname + '/pages/test.handlebars');
         this.result.should.equal(this.fixture);
     });
@@ -68,7 +48,7 @@ describe('Taft building with layout', function(){
     });
 
     it('should have a template function named "test"', function(){
-        this.T._templates.should.have.a.property('test');
+        this.T._templates.should.have.a.property(path.resolve(__dirname + '/pages/test.handlebars'));
         this.T._templates.test.should.be.a.function;
     });
 
