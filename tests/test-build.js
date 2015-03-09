@@ -2,8 +2,8 @@
 
 var should = require('should');
 var fs = require('fs');
-var path = require('path');
 var taft = require('..');
+var Template = require('../lib/template.js');
 
 var options = {
     helpers: require('./helpers/helper.js'),
@@ -33,9 +33,12 @@ describe('Taft building with layout', function(){
         this.T.defaultLayout.should.equal('default');
     });
 
-    it('should match fixture', function(){
-        this.T.verbose = true;
+    it('should return a string', function(){
         this.result = this.T.build(__dirname + '/pages/test.handlebars');
+        this.result.should.be.a.String;
+    });
+
+    it('should match fixture', function(){
         this.result.should.equal(this.fixture);
     });
 
@@ -43,18 +46,10 @@ describe('Taft building with layout', function(){
         this.T._layouts.default.should.be.a.function;
     });
 
-    it('should return a string', function(){
-        this.result.should.be.a.String;
-    });
-
-    it('should have a template function named "test"', function(){
-        this.T._templates.should.have.a.property(path.resolve(__dirname + '/pages/test.handlebars'));
-        this.T._templates.test.should.be.a.function;
-    });
-
-    it('should have a template function with data and layout properties', function(){
-        this.T._templates.test.should.have.a.property('data');
-        this.T._templates.test.should.have.a.property('layout');
+    it('should have a template function with some properties', function(){
+        this.T._templates[__dirname + '/pages/test.handlebars'].should.have.a.property('compile');
+        this.T._templates[__dirname + '/pages/test.handlebars'].should.have.a.property('build');
+        this.T._templates[__dirname + '/pages/test.handlebars'].should.have.a.property('layout');
     });
 
 });
