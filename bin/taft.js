@@ -16,8 +16,6 @@ function collect(val, memo) {
   return memo;
 }
 
-var STDIN_RE = /^\w+:-$/;
-
 program
     .version('0.0.2')
     .usage('[options] <file ...>')
@@ -33,15 +31,6 @@ program
     .option('-v, --verbose', 'Output some debugging information')
     .option('-s, --silent', "Don't output anything")
     .parse(process.argv);
-
-function parseStdin(datasources) {
-    return datasources.map(function(source) {
-        if (source === '-' || source.match(STDIN_RE))
-            source = source.slice(0, 1) + '/dev/stdin';
-
-        return source;
-    });
-}
 
 // expand files
 var files = [];
@@ -61,10 +50,12 @@ if (files.length === 0) {
 if (files.length > 1 && !program.destDir)
         warn += 'warning - Writing multiple files without --dest-dir\n';
 
-// If STDIN is given, it MUST not also be given in data
-if (files.indexOf('-') > -1) {
+// If STDIN is given, it MUST NOT also be given in data
+if (files.indexOf('-') > -1 || files.indexOf('/dev/stdin') > -1) {
+    var STDIN_RE = /^\w+:(\/dev\/stdin|-)/;
+
     if (
-        program.data.indexOf('-') > -1 ||
+        program.data.indexOf('-') > -1 || program.data.indexOf('/dev/stdin') > -1 ||
         program.data.some(function(x){ return String(x).match(STDIN_RE); })
     ) {
         err += "error - can't read from stdin twice";
@@ -72,6 +63,9 @@ if (files.indexOf('-') > -1) {
 
     files[files.indexOf('-')] = "/dev/stdin";
 }
+
+if (files.indexOf('-') > -1 && files.length > 1)
+    warn += 'warning - using STDIN with named files is silly.';
 
 if (err || warn) {
     console.error(err + warn);
@@ -95,7 +89,7 @@ function outFilePath(file) {
 var options = {
         layouts: program.layout || undefined,
         partials: program.partial || undefined,
-        data: parseStdin(program.data),
+        data: program.data || undefined,
         helpers: program.helper || undefined,
         verbose: program.verbose || false,
         silent: program.silent || false,

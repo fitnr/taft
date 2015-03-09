@@ -13,7 +13,8 @@ var fs = require('rw'),
     yaml = require('js-yaml'),
     YFM = require('yfm');
 
-var STDIN_RE = /^\w+:\/dev\/stdin/;
+var STDIN_RE = /^(\w+:)?(\/dev\/stdin?|-)/;
+var DATA_FORMATS = ['.json', '.yaml', '.ini'];
 
 module.exports.taft = taft;
 
@@ -214,7 +215,6 @@ Taft.prototype._parseData = function(source, base, ext) {
 };
 
 Taft.prototype.readFile = function(filename) {
-    var formats = ['.json', '.yaml', '.ini'];
     var result = {},
         base;
 
@@ -226,22 +226,17 @@ Taft.prototype.readFile = function(filename) {
         if (filename.match(STDIN_RE)) {
             base = filename.split(':').shift();
             filename = '/dev/stdin';
-
-        } else {
-
-            if (formats.indexOf(ext) < 0)
-                throw "Didn't recognize file type " + ext;
-
-            base = path.basename(filename, ext);
         }
+        else if (DATA_FORMATS.indexOf(ext) > -1)
+            base = path.basename(filename, ext);
+
+        else throw "Didn't recognize file type " + ext;
 
         var data = fs.readFileSync(filename, {encoding: 'utf8'});
 
         result = this._parseData(data, base, ext);
 
     } catch (err) {
-        result = {};
-
         if (err.code == 'ENOENT') this.stderr("Couldn't find data file: " + filename);
         else this.stderr("Problem reading data file: " + filename);
 
