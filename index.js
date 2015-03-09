@@ -248,12 +248,19 @@ Taft.prototype.readFile = function(filename) {
 };
 
 Taft.prototype.build = function(file, data) {
-    this.stderr('building: ' + file);
-
     if (!this._templates[path.resolve(file)]) this.template(file);
 
-    var tpl = this._templates[path.resolve(file)],
-        content = tpl.build(this.Handlebars, data);
+    var tpl = this._templates[path.resolve(file)];
+
+    // Ignore page when published === false
+    if (tpl.data.published === false || tpl.data.published === 0) {
+        this.debug('ignoring: ' + file);
+        return;
+    }
+
+    this.stderr('building: ' + file);
+
+    var content = tpl.build(this.Handlebars, data);
 
     if (this._layouts[tpl.layout])
         content = this._applyLayout(tpl.layout, content, extend(tpl.data, data));
