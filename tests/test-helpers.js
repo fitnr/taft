@@ -2,6 +2,7 @@
 
 var should = require('should');
 var taft = require('..');
+var Handlebars = require('handlebars');
 
 describe('taft helpers', function(){
 
@@ -9,6 +10,7 @@ describe('taft helpers', function(){
         W = new taft.Taft({
             defaultLayout: 'basic',
             helpers: ['tests/helpers/cow-helper.js'],
+            handlebars: Handlebars
         });
 
         W._knownHelpers.should.containEql('cow');

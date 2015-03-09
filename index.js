@@ -7,7 +7,6 @@ var fs = require('rw'),
     path = require('path'),
     extend = require('extend'),
     clone = require('clone-object'),
-    Handlebars = require('handlebars'),
     // HH = require('handlebars-helpers'),
     Template = require('./lib/template'),
     ini = require('ini'),
@@ -16,7 +15,7 @@ var fs = require('rw'),
 
 var STDIN_RE = /^\w+:\/dev\/stdin/;
 
-module.exports = taft;
+module.exports.taft = taft;
 
 function base(file) { return path.basename(file, path.extname(file)); }
 
@@ -37,13 +36,15 @@ function mergeGlob(list) {
 }
 
 function taft(file, options) {
-    return new Taft(options).build(file);
+    return new Taft(options).build(require('handlebars'), file);
 }
 
-taft.Taft = Taft;
+module.exports.Taft = Taft;
 
 function Taft(options) {
     if (!(this instanceof Taft)) return new Taft(options);
+
+    this.Handlebars = options.handlebars || require('handlebars');
 
     this._options = options || {};
 
@@ -56,7 +57,7 @@ function Taft(options) {
 
     // helpers
     // uncomment when HH 0.6.0 is out
-    // HH.register(Handlebars, {});
+    // HH.register(this.Handlebars, {});
     this._knownHelpers = [];
     this.helpers(this._options.helpers || {});
 
@@ -69,7 +70,7 @@ function Taft(options) {
     // layouts
     this._layouts = {};
 
-    Handlebars.registerPartial('body', '');
+    this.Handlebars.registerPartial('body', '');
     this.layouts(this._options.layouts || []);
 
     return this;
@@ -94,29 +95,28 @@ Taft.prototype.layouts = function(layouts) {
     if (Object.keys(this._layouts).length === 1)
         this.defaultLayout = Object.keys(this._layouts).pop();
     else
-        this.defaultLayout = this._defaultLayout.slice();
+        this.defaultLayout = this._options.defaultLayout || 'default';
 
     return this;
 };
 
 Taft.prototype._applyLayout = function(name, content, pageData) {
-    Handlebars.registerPartial('body', content);
+    this.Handlebars.registerPartial('body', content);
 
     try {
         // override passed pageData with global data
         // (because layout is 'closer' to core of things)
         // then append it in a page key
         pageData.page = clone(pageData);
-
-        var page = this._layouts[name].build(pageData, {noOverride: true});
-
-        Handlebars.registerPartial('body', '');
+        var page = this._layouts[name].build(this.Handlebars, pageData, {noOverride: true});
+        this.Handlebars.registerPartial('body', '');
 
         return page;
 
     } catch (e) {
-        Handlebars.registerPartial('body', '');
+        this.Handlebars.registerPartial('body', '');
         this.stderr(e);
+
         throw 'Unable to render page: ' + e.message;
     }
 };
@@ -137,7 +137,7 @@ Taft.prototype._createTemplate = function(file, options) {
         layout = source.context.layout || this.defaultLayout;
 
     // class data extended by current context
-    return new Template(Handlebars, source.content.trimLeft(), {
+    return new Template(source.content.trimLeft(), {
         data: extend(clone(this._data), source.context),
         layout: layout,
         helpers: this._helpers,
@@ -257,7 +257,7 @@ Taft.prototype.build = function(file, data) {
     if (!this._templates[path.resolve(file)]) this.template(file);
 
     var tpl = this._templates[file],
-        content = tpl.build(data);
+        content = tpl.build(this.Handlebars, data);
 
     if (this._layouts[tpl.layout])
         content = this._applyLayout(tpl.layout, content, extend(tpl.data, data));
@@ -274,7 +274,7 @@ Taft.prototype.helpers = function(helpers) {
         registered = this.registerHelperFiles(mergeGlob(helpers));
 
     else if (typeof(helpers) == 'object') {
-        Handlebars.registerHelper(helpers);
+        this.Handlebars.registerHelper(helpers);
         registered = Object.keys(helpers);
     }
 
@@ -291,7 +291,7 @@ Taft.prototype.helpers = function(helpers) {
 };
 
 Taft.prototype.registerHelperFiles = function(helpers) {
-    var current = Object.keys(Handlebars.helpers);
+    var current = Object.keys(this.Handlebars.helpers);
 
     helpers.forEach((function(h) {
         var module;
@@ -307,13 +307,13 @@ Taft.prototype.registerHelperFiles = function(helpers) {
 
             // register the module one of a couple of ways
             if (module.register)
-                module.register(Handlebars, this._options);
+                module.register(this.Handlebars, this._options);
 
             else if (typeof(module) === 'function')
-                module(Handlebars, this._options);
+                module(this.Handlebars, this._options);
 
             else if (typeof(module) === 'object')
-                Handlebars.registerHelper(module);
+                this.Handlebars.registerHelper(module);
 
             else
                 throw "not a function or object.";
@@ -326,7 +326,7 @@ Taft.prototype.registerHelperFiles = function(helpers) {
     }).bind(this));
 
     // return new helpers
-    return Object.keys(Handlebars.helpers).filter(function(e) {
+    return Object.keys(this.Handlebars.helpers).filter(function(e) {
         return current.indexOf(e) === -1;
     });
 };
@@ -342,7 +342,7 @@ Taft.prototype.partials = function(partials) {
         partials.forEach((function(partial) {
             var p = base(partial);
             try {
-                Handlebars.registerPartial(p, fs.readFileSync(partial, {encoding: 'utf-8'}));
+                this.Handlebars.registerPartial(p, fs.readFileSync(partial, {encoding: 'utf-8'}));
                 registered.push(p);
             } catch (err) {
                 this.stderr("Could not register partial: " + p);
@@ -352,7 +352,7 @@ Taft.prototype.partials = function(partials) {
     } else if (typeof(partials) === 'object')
         for (var name in partials)
             if (partials.hasOwnProperty(name))
-                Handlebars.registerPartial(name, partials[name]);
+                this.Handlebars.registerPartial(name, partials[name]);
 
     if (registered.length) this.debug('registered partials: ' + registered.join(', '));
 
