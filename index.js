@@ -69,9 +69,6 @@ function Taft(options) {
     // layouts
     this._layouts = {};
 
-    this._defaultLayout = this._options.defaultLayout || 'default';
-    this.defaultLayout = this._defaultLayout.slice();
-
     Handlebars.registerPartial('body', '');
     this.layouts(this._options.layouts || []);
 
@@ -133,8 +130,11 @@ Taft.prototype._createTemplate = function(file, options) {
     var source = YFM.read(file);
 
     var layout;
-    if (source.context.layout)
-        layout = (source.context.layout === this.defaultLayout) ? undefined : this.defaultLayout;
+    // protect against infinite loops
+    // if file is foo.html, layout can't be foo
+    // if file is default.html, layout can't be default
+    if ([base(source.context.layout), this.defaultLayout].indexOf(base(file)) == -1)
+        layout = source.context.layout || this.defaultLayout;
 
     // class data extended by current context
     return new Template(Handlebars, source.content.trimLeft(), {
@@ -260,7 +260,7 @@ Taft.prototype.build = function(file, data) {
         content = tpl.build(data);
 
     if (this._layouts[tpl.layout])
-        content = this._applyLayout(tpl.layout, content, extend(tpl.data(), data));
+        content = this._applyLayout(tpl.layout, content, extend(tpl.data, data));
 
     return content;
 };
