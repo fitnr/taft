@@ -214,7 +214,7 @@ Taft.prototype._parseData = function(source, base, ext) {
 };
 
 Taft.prototype.readFile = function(filename) {
-    var formats = ['.json', '.yaml'];
+    var formats = ['.json', '.yaml', '.ini'];
     var result = {},
         base;
 
