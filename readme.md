@@ -187,7 +187,7 @@ $ echo '["guffaw", "cackle"]' | taft --data laughs:- source/page2.hbs > build/pa
 ### Other options
 
 * `--default-layout`: The basename of the layout to use for pages with no layout given. By default, there is no default layout.
-* `--ext`: By default when using `--dest-dir`, files are saved as '.html'. This option specifies another extension.
+* `--ext`: By default when using `--dest-dir`, files are saved as '.html'. This option specifies another extension. This will be overridden if the file has an `ext` key in its YAML front matter.
 * `--cwd`: When used in combination with `--dest-dir`, files will be saved relative to `--cwd`. For example, `--cwd=src/pages --dest-dir build` will save `src/pages/page.html` to `build/page.html`.
 
 Complete option list:

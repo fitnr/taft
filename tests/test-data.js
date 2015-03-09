@@ -32,7 +32,7 @@ describe('Taft data', function(){
     });
 
     it('should read produce pages with that data', function() {
-        result = this.T.build(__dirname + '/pages/test.handlebars');
+        result = ""+this.T.build(__dirname + '/pages/test.handlebars');
         result.should.equal(this.fixture);
     });
 

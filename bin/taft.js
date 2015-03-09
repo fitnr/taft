@@ -32,19 +32,20 @@ program
     .option('-s, --silent', "Don't output anything")
     .parse(process.argv);
 
-function outFilePath(file, ext) {
+function outFilePath(file) {
     if (program.destDir) {
         if (program.cwd)
             file = path.relative(program.cwd, file);
-        
-        var dirpart = path.dirname(file),
-            base = path.basename(file, path.extname(file)) + '.' + ext;
 
-        return path.join(program.destDir, dirpart, base);
+        return path.join(program.destDir, file);
 
     } else {
         return program.output;
     }
+}
+
+function replaceExt(file, ext) {
+    return file.slice(0, -path.extname(file).length) + '.' + ext;
 }
 
 // Must be bound to {file: foo, build: build} object
@@ -54,11 +55,11 @@ function save(er) {
 
     var file = this.file;
 
-    rw.writeFile(file, this.build, {encoding: 'utf8'}, function(err) {
+    rw.writeFile(file, this.build, 'utf8', function(err) {
         if (err) console.error(err);
 
         if (program.silent !== true && file !== '/dev/stdout')
-            console.log(file);
+            console.log(file.toString());
     });
 }
 
@@ -91,11 +92,17 @@ processArgs(program, function(err, warn, files) {
     var taft = new Taft(options);
 
     files.forEach(function(file) {
-        var f = outFilePath(file, ext),
+        var f = outFilePath(file),
             build = taft.build(file);
 
-        if (build)
-            mkdirp(path.dirname(f), save.bind({build: build, file: f}));
+        if (build) {
+            f = replaceExt(f, build.ext || ext);
+
+            mkdirp(path.dirname(f), save.bind({
+                build: build.toString(),
+                file: f
+            }));
+        }
     });
 
 });

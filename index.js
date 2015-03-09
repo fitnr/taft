@@ -125,7 +125,6 @@ Taft.prototype._applyLayout = function(name, content, pageData) {
  * returns a template object named (path.resolve(file))
  */
 Taft.prototype._createTemplate = function(file, options) {
-
     var source = YFM.read(file),
         context = source.context || {},
         content = source.content || '';
@@ -263,7 +262,11 @@ Taft.prototype.build = function(file, data) {
     var content = tpl.build(this.Handlebars, data);
 
     if (this._layouts[tpl.layout])
-        content = this._applyLayout(tpl.layout, content, extend(tpl.data, data));
+        content = this._applyLayout(tpl.layout, content.toString(), extend(tpl.data, data));
+
+    // optionally add extension
+    if (tpl.data.ext)
+        content.ext = tpl.data.ext;
 
     return content;
 };
@@ -345,7 +348,7 @@ Taft.prototype.partials = function(partials) {
         partials.forEach((function(partial) {
             var p = path.basename(partial, path.extname(partial));
             try {
-                this.Handlebars.registerPartial(p, fs.readFileSync(partial, {encoding: 'utf-8'}));
+                this.Handlebars.registerPartial(p, fs.readFileSync(partial, 'utf8'));
                 registered.push(p);
             } catch (err) {
                 this.stderr("Could not register partial: " + p);

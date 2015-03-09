@@ -25,7 +25,7 @@ describe('Taft building with layout', function(){
     });
 
     it('should have the default layout', function(){
-        T = this.T.layouts(__dirname + '/layouts/default.html');
+        this.T.layouts(__dirname + '/layouts/default.html');
         this.T._layouts.should.have.property('default.html');
     });
 
@@ -33,13 +33,9 @@ describe('Taft building with layout', function(){
         this.T.defaultLayout.should.equal('default.html');
     });
 
-    it('should return a string', function(){
-        this.result = this.T.build(__dirname + '/pages/test.handlebars');
-        this.result.should.be.a.String;
-    });
-
     it('should match fixture', function(){
-        this.result.should.equal(this.fixture);
+        result = ""+this.T.build(__dirname + '/pages/test.handlebars');
+        result.should.equal(this.fixture);
     });
 
     it('should have a layout function', function(){

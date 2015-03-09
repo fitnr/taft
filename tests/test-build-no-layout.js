@@ -22,11 +22,7 @@ describe('Taft building without layout', function(){
         this.T = taft.Taft(this.options);
         this.fixture = fs.readFileSync(__dirname + '/fixtures/no-layout.html', {encoding: 'utf-8'});
 
-        this.result = this.T.build(__dirname + '/pages/test.handlebars');
-    });
-
-    it('should return a string', function(){
-        this.result.should.be.a.String;
+        this.result = ""+this.T.build(__dirname + '/pages/test.handlebars');
     });
 
     it('should match fixture', function(){
