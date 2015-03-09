@@ -21,7 +21,6 @@ script: magic-spells.js
 ````
 
 Run this command:
-
 ````
 $ taft source/page1.hbs 
 taft building source/page1.hbs
@@ -29,10 +28,15 @@ taft building source/page1.hbs
 <script src="magic-spells.js"></script>
 ````
 
-Note that the status message outputs to stderr, so One can safely pipe the result.
+Note that the status message outputs to stderr, so one can safely pipe the result.
+
+By default, output goes to stdout. Specify a single output file with `--output` or `-o`:
+````
+$ taft source/page1.hbs -o build/page1.html
+build/page1.html
+````
 
 To generate more than one file, just pass a destination directory.
-
 ````
 $ taft source/page1.hbs source/page2.hbs other/*.hbs --dest-dir build/
 taft building source/page1.hbs
@@ -41,12 +45,6 @@ taft building source/page2.hbs
 build/page2.html
 taft building other/more.hbs
 build/more.html
-````
-
-Specifying a single output file with `--output`:
-````
-$ taft source/page1.hbs -o build/page1.html
-build/page1.html
 ````
 
 Read from stdin by giving '-' as the file name.
@@ -60,7 +58,6 @@ $ cat source/page1.hbs | taft - > build/page1.html
 Use a layout (aka template) to wrap a file with content. The layout should use the `{{> body}}` helper to refer to the content.
 
 The data on the child page is available on the layout. If there's a conflict, use the 'page' prefix.
-
 ````handlebars
 ---
 workplace: haunted wood
@@ -70,11 +67,9 @@ script: main.js
 {{> body}}
 <script src="{{script}}"></script>
 ````
-
 ````
 $ taft --layout layouts/template.hbs source/page1.hbs > build/page1.html
 ````
-
 ````html
 <p>Notes from the cavern and the haunted wood.</p>
 <p>The cauldron in my cavern is bubbling.</p>
@@ -98,7 +93,6 @@ title: My Favorite Encantations
 ---
 Encantations...
 ````
-
 ````yaml
 ---
 # source/page2.hbs
@@ -108,7 +102,6 @@ layout: potions
 ---
 Potions...
 ````
-
 ````yaml
 ---
 # source/page3.hbs
@@ -193,20 +186,24 @@ $ echo '["guffaw", "cackle"]' | taft --data laughs:- source/page2.hbs > build/pa
 
 ### Other options
 
+* `--default-layout`: The basename of the layout to use for pages with no layout given. By default, there is no default layout.
 * `--ext`: By default when using `--dest-dir`, files are saved as '.html'. This option specifies another extension.
+* `--cwd`: When used in combination with `--dest-dir`, files will be saved relative to `--cwd`. For example, `--cwd=src/pages --dest-dir build` will save `src/pages/page.html` to `build/page.html`.
 
 Complete option list:
 
 ````
-    -t, --layout <file>    layout (template) file
-    -H, --helper <file>    js file that exports an object containing handlebars helpers
-    -p, --partial <file>   partials (basename of file is partial name)
-    -d, --data <data>      JSON or YAML data.
-    -o, --output <path>    output file
-    -D, --dest-dir <path>  output directory (mandatory if more than one file given)
-    -e, --ext <string>     output file extension (default: html)
-    -v, --verbose          Output some debugging information
-    -q, --quiet            Don't output progress
+    -H, --helper <file>          js file that exports an object containing handlebars helpers
+    -p, --partial <file>         partial (globs are ok)
+    -d, --data <data>            JSON, YAML or INI file or data (stdin with '-' or 'key:-')
+    -t, --layout <file>          layout (template) file
+    -y, --default-layout <name>  use this layout as default
+    -o, --output <path>          output file
+    -D, --dest-dir <path>        output directory (mandatory if more than one file given)
+    -C, --cwd <path>             Saves files relative this directory
+    -e, --ext <string>           output file extension (default: html)
+    -v, --verbose                Output some debugging information
+    -s, --silent                 Don't output anything
 ````
 
 ### Note

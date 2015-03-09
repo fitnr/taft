@@ -22,11 +22,12 @@ program
     .description('Render files with Handlebars')
     .option('-H, --helper <file>', 'js file that exports an object containing handlebars helpers', collect, [])
     .option('-p, --partial <file>', 'partial (globs are ok)', collect, [])
-    .option('-d, --data <data>', 'JSON, YAML or INI file or data (stdin with \'-\')', collect, [])
+    .option('-d, --data <data>', 'JSON, YAML or INI file or data (stdin with \'-\' or \'key:-\')', collect, [])
     .option('-t, --layout <file>', 'layout (template) file', collect, [])
     .option('-y, --default-layout <name>', 'use this layout as default', String)
     .option('-o, --output <path>', 'output file', String, '-')
     .option('-D, --dest-dir <path>', 'output directory (mandatory if more than one file given)', String)
+    .option('-C, --cwd <path>', 'Saves files relative this directory', String)
     .option('-e, --ext <string>', 'output file extension (default: html)', String, 'html')
     .option('-v, --verbose', 'Output some debugging information')
     .option('-s, --silent', "Don't output anything")
@@ -79,10 +80,18 @@ if (program.output === '-') program.output = '/dev/stdout';
 var ext = (program.ext.slice(0, 1) === '.') ? program.ext.slice(1) : program.ext;
 
 function outFilePath(file) {
-    if (program.destDir)
-        return path.join(program.destDir, path.basename(file, path.extname(file)) + '.' + ext);
+    if (program.destDir) {
+        if (program.cwd)
+            file = path.relative(program.cwd, file);
+        
+        var dirpart = path.dirname(file),
+            base = path.basename(file, path.extname(file)) + '.' + ext;
 
-    else return program.output;
+        return path.join(program.destDir, dirpart, base);
+
+    } else {
+        return program.output;
+    }
 }
 
 // setup options
