@@ -4,11 +4,10 @@
 
 var path = require('path'),
     rw = require('rw'),
-    concat = require('concat-stream'),
-    program = require('commander'),
-    glob = require('glob'),
-    extend = require('extend'),
-    yaml = require('js-yaml'),
+    mkdirp = require('mkdirp'),
+    program = require('commander');
+ 
+var processArgs = require('../lib/process-args.js'),
     Taft = require('..').Taft;
 
 function collect(val, memo) {
@@ -33,53 +32,7 @@ program
     .option('-s, --silent', "Don't output anything")
     .parse(process.argv);
 
-// expand files
-var files = [];
-program.args.forEach(function(arg) {
-    if (arg === '-') files.push('-');
-    else Array.prototype.push.apply(files, glob.sync(arg, {nonull: true}));
-});
-
-// check arguments
-var err = '', warn = '';
-
-if (files.length === 0) {
-    err += 'error - please provide an input file\n';
-}
-
-// Lists of files SHOULD have a dest dir
-if (files.length > 1 && !program.destDir)
-        warn += 'warning - Writing multiple files without --dest-dir\n';
-
-// If STDIN is given, it MUST NOT also be given in data
-if (files.indexOf('-') > -1 || files.indexOf('/dev/stdin') > -1) {
-    var STDIN_RE = /^\w+:(\/dev\/stdin|-)/;
-
-    if (
-        program.data.indexOf('-') > -1 || program.data.indexOf('/dev/stdin') > -1 ||
-        program.data.some(function(x){ return String(x).match(STDIN_RE); })
-    ) {
-        err += "error - can't read from stdin twice";
-    }
-
-    files[files.indexOf('-')] = "/dev/stdin";
-}
-
-if (files.indexOf('-') > -1 && files.length > 1)
-    warn += 'warning - using STDIN with named files is silly.';
-
-if (err || warn) {
-    console.error(err + warn);
-    if (err) process.exit(1);
-}
-
-// handle stdout
-if (program.output === '-') program.output = '/dev/stdout';
-
-// remove . from extension
-var ext = (program.ext.slice(0, 1) === '.') ? program.ext.slice(1) : program.ext;
-
-function outFilePath(file) {
+function outFilePath(file, ext) {
     if (program.destDir) {
         if (program.cwd)
             file = path.relative(program.cwd, file);
@@ -94,27 +47,55 @@ function outFilePath(file) {
     }
 }
 
+// Must be bound to {file: foo, build: build} object
+function save(er) {
+    /*jshint validthis:true */
+    if (er) console.error(er);
+
+    var file = this.file;
+
+    rw.writeFile(file, this.build, {encoding: 'utf8'}, function(err) {
+        if (err) console.error(err);
+
+        if (program.silent !== true && file !== '/dev/stdout')
+            console.log(file);
+    });
+}
+
 // setup options
 var options = {
-        layouts: program.layout || undefined,
-        partials: program.partial || undefined,
-        data: program.data || undefined,
-        helpers: program.helper || undefined,
-        verbose: program.verbose || false,
-        silent: program.silent || false,
-        defaultLayout: program.defaultLayout || undefined,
-    };
+    layouts: program.layout || undefined,
+    partials: program.partial || undefined,
+    data: program.data || undefined,
+    helpers: program.helper || undefined,
+    verbose: program.verbose || false,
+    silent: program.silent || false,
+    defaultLayout: program.defaultLayout || undefined,
+};
 
-// render output
-var taft = new Taft(options);
+// process files and possibly toss errors
+processArgs(program, function(err, warn, files) {
+    if (err || warn) {
+        console.error(err + warn);
+        if (err) process.exit(1);
+    }
 
-files.forEach(function(file) {
-    var f = outFilePath(file);
+    // handle stdout
+    if (program.output === '-')
+        program.output = '/dev/stdout';
 
-    if (!program.silent && program.output !== '/dev/stdout')
-        console.log(f);
+    // remove . from extension
+    var ext = (program.ext.slice(0, 1) === '.') ? program.ext.slice(1) : program.ext;
 
-    rw.writeFileSync(f, taft.build(file), {encoding:'utf8'}, function(err) {
-        if (err) console.error(err);
+    // render output
+    var taft = new Taft(options);
+
+    files.forEach(function(file) {
+        var f = outFilePath(file, ext),
+            build = taft.build(file);
+
+        if (build)
+            mkdirp(path.dirname(f), save.bind({build: build, file: f}));
     });
+
 });
