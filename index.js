@@ -92,9 +92,11 @@ Taft.prototype.layouts = function(layouts) {
 
     // as a convenience, when there's only one layout, that will be the default
     if (Object.keys(this._layouts).length === 1)
-        this.defaultLayout = Object.keys(this._layouts).pop();
+        this.defaultLayout = path.basename(Object.keys(this._layouts).pop());
     else if (this._options.defaultLayout)
-        this.defaultLayout = this._options.defaultLayout;
+        this.defaultLayout = path.basename(this._options.defaultLayout);
+
+    this.debug('Set default layout to ' + this.defaultLayout);
 
     return this;
 };
@@ -107,16 +109,20 @@ Taft.prototype._applyLayout = function(name, content, pageData) {
         // (because layout is 'closer' to core of things)
         // then append it in a page key
         pageData.page = clone(pageData);
+
         var page = this._layouts[name].build(this.Handlebars, pageData, {noOverride: true});
-        this.Handlebars.registerPartial('body', '');
+
+        if (this._layouts[name].layout)
+            page = this._applyLayout(this._layouts[name].layout, page.toString(), pageData);
 
         return page;
 
     } catch (e) {
-        this.Handlebars.registerPartial('body', '');
-        this.stderr(e);
-
+        this.debug(e);
         throw 'Unable to render page: ' + e.message;
+
+    } finally {
+        this.Handlebars.unregisterPartial('body');
     }
 };
 
@@ -175,6 +181,7 @@ Taft.prototype.data = function() {
 };
 
 /*
+ * Parses either string or file
  * base and ext are used by readFile
  */
 Taft.prototype._parseData = function(source, base, ext) {
@@ -232,7 +239,7 @@ Taft.prototype.readFile = function(filename) {
 
         else throw "Didn't recognize file type " + ext;
 
-        var data = fs.readFileSync(filename, {encoding: 'utf8'});
+        var data = fs.readFileSync(filename, 'utf8');
 
         result = this._parseData(data, base, ext);
 
@@ -258,6 +265,7 @@ Taft.prototype.build = function(file, data) {
     }
 
     this.stderr('building: ' + file);
+    this.debug('layout: ' + tpl.layout);
 
     var content = tpl.build(this.Handlebars, data);
 
