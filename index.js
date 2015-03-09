@@ -128,17 +128,19 @@ Taft.prototype._applyLayout = function(name, content, pageData) {
  */
 Taft.prototype._createTemplate = function(file, options) {
 
-    var source = YFM.read(file);
+    var source = YFM.read(file),
+        context = source.context || {},
+        content = source.content || '';
 
     var layout;
     // protect against infinite loops
     // if file is foo.html, layout can't be foo
     // if file is default.html, layout can't be default
-    if ([base(source.context.layout), this.defaultLayout].indexOf(base(file)) == -1)
-        layout = source.context.layout || this.defaultLayout;
+    if ([base(context.layout), this.defaultLayout].indexOf(base(file)) == -1)
+        layout = context.layout || this.defaultLayout;
 
     // class data extended by current context
-    return new Template(source.content.trimLeft(), {
+    return new Template(content.trimLeft(), {
         data: extend(clone(this._data), source.context),
         layout: layout,
         helpers: this._helpers,
