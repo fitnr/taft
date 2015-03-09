@@ -253,7 +253,7 @@ Taft.prototype.build = function(file, data) {
 
     if (!this._templates[path.resolve(file)]) this.template(file);
 
-    var tpl = this._templates[file],
+    var tpl = this._templates[path.resolve(file)],
         content = tpl.build(this.Handlebars, data);
 
     if (this._layouts[tpl.layout])
