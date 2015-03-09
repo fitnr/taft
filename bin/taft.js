@@ -17,7 +17,7 @@ function collect(val, memo) {
 }
 
 program
-    .version('0.0.2')
+    .version('0.0.5')
     .usage('[options] <file ...>')
     .description('Render files with Handlebars')
     .option('-H, --helper <file>', 'js file that exports an object containing handlebars helpers', collect, [])
