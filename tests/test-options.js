@@ -8,7 +8,7 @@ describe('taft options', function(){
     before(function(){
 
         var options = {
-            defaultLayout: 'basic',
+            defaultLayout: 'basic.hbs',
         };
 
         this.T = taft.Taft(options);
@@ -20,7 +20,7 @@ describe('taft options', function(){
     });
 
     it('should have default layout', function(){
-        this.T.defaultLayout.should.equal('basic');
+        this.T.defaultLayout.should.equal('basic.hbs');
     });
 
 });

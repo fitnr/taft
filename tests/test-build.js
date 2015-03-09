@@ -26,11 +26,11 @@ describe('Taft building with layout', function(){
 
     it('should have the default layout', function(){
         T = this.T.layouts(__dirname + '/layouts/default.html');
-        this.T._layouts.should.have.property('default');
+        this.T._layouts.should.have.property('default.html');
     });
 
     it('should have the defaultLayout', function(){
-        this.T.defaultLayout.should.equal('default');
+        this.T.defaultLayout.should.equal('default.html');
     });
 
     it('should return a string', function(){
@@ -43,7 +43,7 @@ describe('Taft building with layout', function(){
     });
 
     it('should have a layout function', function(){
-        this.T._layouts.default.should.be.a.function;
+        this.T._layouts['default.html'].should.be.a.function;
     });
 
     it('should have a template function with some properties', function(){

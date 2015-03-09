@@ -18,8 +18,6 @@ var DATA_FORMATS = ['.json', '.yaml', '.ini'];
 
 module.exports.taft = taft;
 
-function base(file) { return path.basename(file, path.extname(file)); }
-
 function mergeGlob(list) {
     if (!Array.isArray(list)) list = [list];
     list = list.map(function(e) {
@@ -87,7 +85,7 @@ Taft.prototype.layouts = function(layouts) {
     layouts = mergeGlob(layouts);
 
     layouts.forEach((function(layout) {
-        var name = base(layout);
+        var name = path.basename(layout);
         this.debug('Adding layout ' + name);
         this._layouts[name] = this._createTemplate(layout);
     }).bind(this));
@@ -95,8 +93,8 @@ Taft.prototype.layouts = function(layouts) {
     // as a convenience, when there's only one layout, that will be the default
     if (Object.keys(this._layouts).length === 1)
         this.defaultLayout = Object.keys(this._layouts).pop();
-    else
-        this.defaultLayout = this._options.defaultLayout || 'default';
+    else if (this._options.defaultLayout)
+        this.defaultLayout = this._options.defaultLayout;
 
     return this;
 };
@@ -132,19 +130,20 @@ Taft.prototype._createTemplate = function(file, options) {
         context = source.context || {},
         content = source.content || '';
 
-    var layout;
+    var templateOptions = {
+        data: extend(clone(this._data), context),
+        helpers: this._helpers
+    };
+
     // protect against infinite loops
-    // if file is foo.html, layout can't be foo
-    // if file is default.html, layout can't be default
-    if ([base(context.layout), this.defaultLayout].indexOf(base(file)) == -1)
-        layout = context.layout || this.defaultLayout;
+    // if file is foo.hbs, layout can't be foo.hbs
+    // if file is default.hbs, layout can't be default.hbs
+    if (context.layout || this.defaultLayout)
+        if ([this.defaultLayout, context.layout].indexOf(path.basename(file)) === -1)
+            templateOptions.layout = context.layout || this.defaultLayout;
 
     // class data extended by current context
-    return new Template(content.trimLeft(), {
-        data: extend(clone(this._data), source.context),
-        layout: layout,
-        helpers: this._helpers,
-    });
+    return new Template(content.trimLeft(), templateOptions);
 };
 
 /**
@@ -337,7 +336,7 @@ Taft.prototype.partials = function(partials) {
         partials = mergeGlob(partials);
 
         partials.forEach((function(partial) {
-            var p = base(partial);
+            var p = path.basename(partial, path.extname(partial));
             try {
                 this.Handlebars.registerPartial(p, fs.readFileSync(partial, {encoding: 'utf-8'}));
                 registered.push(p);
