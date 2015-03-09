@@ -55,11 +55,12 @@ function save(er) {
 
     var file = this.file;
 
-    rw.writeFile(file, this.build, 'utf8', function(err) {
+    rw.writeFile(file, this.content, 'utf8', function(err) {
+
         if (err) console.error(err);
 
         if (program.silent !== true && file !== '/dev/stdout')
-            console.log(file.toString());
+            console.log(file);
     });
 }
 
@@ -96,10 +97,10 @@ processArgs(program, function(err, warn, files) {
             build = taft.build(file);
 
         if (build) {
-            f = replaceExt(f, build.ext || ext);
+            f = (file === '/dev/stdout') ? file : replaceExt(f, build.ext || ext);
 
             mkdirp(path.dirname(f), save.bind({
-                build: build.toString(),
+                content: build.toString(),
                 file: f
             }));
         }

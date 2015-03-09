@@ -276,6 +276,8 @@ Taft.prototype.build = function(file, data) {
     if (tpl.data.ext)
         content.ext = tpl.data.ext;
 
+    content.source = file;
+
     return content;
 };
 
