@@ -208,12 +208,18 @@ Complete option list:
 
 ### Note
 
-If you pass a glob to `--partial` or `--helper`, make sure to enclose it in single quotes, or else your shell will expand it
+If you pass a glob to `--partial`, `--data`, `--layout` or `--helper`, make sure to enclose it in single quotes, or else your shell will expand it
 ````
 $ taft --partial 'partials/*' source/page1.hbs
 ````
-
-Both `--partial` and `--helper` are repeatable:
 ````
-$ taft --partial partials/fun.hbs --partial partials/cool.hbs source/page1.hbs
+$ taft --data 'data/*.{yaml,json}' source/page1.hbs
+````
+
+The `--partial`, `--data`, `--layout`, and `--helper` options are repeatable:
+````
+$ taft --partial fun.hbs --partial cool.hbs source/page1.hbs
+````
+````
+$ taft --data newt.ini --data 'frog-*.yaml' source/page1.hbs
 ````
