@@ -24,7 +24,7 @@ program
     .option('-d, --data <data>', 'JSON, YAML or INI file or data (stdin with \'-\' or \'key:-\')', collect, [])
     .option('-t, --layout <file>', 'layout (template) file', collect, [])
     .option('-y, --default-layout <name>', 'use this layout as default', String)
-    .option('-o, --output <path>', 'output file', String, '-')
+    .option('-o, --output <path>', 'output file', String, '/dev/stdout')
     .option('-D, --dest-dir <path>', 'output directory (mandatory if more than one file given)', String)
     .option('-C, --cwd <path>', 'Saves files relative this directory', String)
     .option('-e, --ext <string>', 'output file extension (default: html)', String, 'html')
@@ -82,10 +82,6 @@ processArgs(program, function(err, warn, files) {
         if (err) process.exit(1);
     }
 
-    // handle stdout
-    if (program.output === '-')
-        program.output = '/dev/stdout';
-
     // remove . from extension
     var ext = (program.ext.slice(0, 1) === '.') ? program.ext.slice(1) : program.ext;
 
@@ -93,15 +89,15 @@ processArgs(program, function(err, warn, files) {
     var taft = new Taft(options);
 
     files.forEach(function(file) {
-        var f = outFilePath(file),
+        var outfile = outFilePath(file),
             build = taft.build(file);
 
         if (build) {
-            f = (file === '/dev/stdout') ? file : replaceExt(f, build.ext || ext);
+            outfile = (outfile === '/dev/stdout') ? outfile : replaceExt(outfile, build.ext || ext);
 
-            mkdirp(path.dirname(f), save.bind({
+            mkdirp(path.dirname(outfile), save.bind({
                 content: build.toString(),
-                file: f
+                file: outfile
             }));
         }
     });
