@@ -11,17 +11,37 @@ describe('taft options', function(){
             defaultLayout: 'basic.hbs',
         };
 
-        this.T = taft.Taft(options);
+        this.U = taft.Taft(options);
     });
 
     it('should silent and verbose defaults', function(){
-        this.T.silent.should.be.False;
-        this.T.verbose.should.be.False;
+        this.U.silent.should.be.False;
+        this.U.verbose.should.be.False;
     });
 
     it('should have default layout', function(){
-        this.T.defaultLayout.should.equal('basic.hbs');
+        this.U._defaultLayout.should.equal('basic.hbs');
     });
 
 });
 
+describe('Taft chaining', function(){
+    before(function(){
+        this.T2 = new taft.Taft({
+            layouts: [__dirname + '/layouts/default.html', __dirname + '/partials/partial.html']
+        });
+    });
+
+    it('Should chain', function(){
+        this.T2.helpers([]).should.be.instanceOf(taft.Taft);
+        this.T2.partials([]).should.be.instanceOf(taft.Taft);
+        this.T2.data([]).should.be.instanceOf(taft.Taft);
+        this.T2.layouts([]).should.be.instanceOf(taft.Taft);
+    });
+
+    it('defaultLayout should work', function(){
+        this.T2.defaultLayout('default.html').should.be.instanceOf(taft.Taft);
+        this.T2._defaultLayout.should.equal('default.html');
+    });
+
+});

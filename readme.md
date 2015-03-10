@@ -2,7 +2,7 @@
 
 Generate static html files from Handlebars files with YAML front matter.
 
-Intended as a pandoc-like tool for building a simple page, or even for generating basic static websites.
+Intended as a pandoc-like tool for building a simple page, or even for generating basic static websites. Taft is lightning fast and simple to use.
 
 ## command line
 
@@ -173,7 +173,7 @@ $ taft --data data/data.yaml source/page1.hbs > build/page1.hbs
 $ echo '{"workplace": "haunted forest"}' | taft --data - source/page2.hbs > build/page2.hbs
 ````
 
-Data read from stdin can be placed in a named object using the format `key:-`.
+Data read from stdin can be placed in a named object using the format `key:-`. You could combine this with a [tool that reads yaml front matter](https://github.com/fitnr/yfm-concat) to build navigation elements.
 
 ````
 $ echo '["guffaw", "cackle"]' | taft --data laughs:- source/page2.hbs > build/page2.hbs
@@ -222,4 +222,42 @@ $ taft --partial fun.hbs --partial cool.hbs source/page1.hbs
 ````
 ````
 $ taft --data newt.ini --data 'frog-*.yaml' source/page1.hbs
+````
+
+## API
+
+Taft is designed to use on the command line, but it has a simple API. Layouts, partials, helpers can be passed a list of files or globs, or a single filename as a string. Data files can be a list of files or javascript objects.
+````javascript
+Taft = require('taft');
+
+var options = {
+    layouts: ['layout.hbs']
+    partials: 'layout.partial'
+    data: [{"key": "foo"}, 'data.json'],
+    helpers: 'helper.js',
+    verbose: false // control the amount of logging to console
+    silent: false
+    defaultLayout: 'layout.hbs'
+};
+var taft = new Taft.Taft(options);
+
+// returns a Content object, which is just a String
+// that possibly has two properties:
+// ext - the extension the file wants to have
+// source - the path to the source file 
+
+var result = taft.build('source/page1.hbs');
+````
+
+Taft also comes with chainable methods for adding layouts, helpers, data or partials. These can take the same arguments as the options. The above and below blocks of code are equivalent.
+
+````javascript
+var taft = new Taft.Taft()
+    .layouts('layout.hbs')
+    .helpers(['helpers.js'])
+    .data([{"key": "foo"}, 'data.json'])
+    .partials(['layout.partial'])
+    .defaultLayout('layout.hbs');
+
+var result = taft.build('source/page1.hbs');
 ````

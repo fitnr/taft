@@ -30,7 +30,7 @@ describe('Taft building with layout', function(){
     });
 
     it('should have the defaultLayout', function(){
-        this.T.defaultLayout.should.equal('default.html');
+        this.T._defaultLayout.should.equal('default.html');
     });
 
     it('should match fixture', function(){

@@ -92,11 +92,11 @@ Taft.prototype.layouts = function(layouts) {
 
     // as a convenience, when there's only one layout, that will be the default
     if (Object.keys(this._layouts).length === 1)
-        this.defaultLayout = path.basename(Object.keys(this._layouts).pop());
+        this._defaultLayout = path.basename(Object.keys(this._layouts).pop());
     else if (this._options.defaultLayout)
-        this.defaultLayout = path.basename(this._options.defaultLayout);
+        this._defaultLayout = path.basename(this._options.defaultLayout);
 
-    this.debug('Set default layout to ' + this.defaultLayout);
+    this.debug('Set default layout to ' + this._defaultLayout);
 
     return this;
 };
@@ -119,7 +119,9 @@ Taft.prototype._applyLayout = function(name, content, pageData) {
 
     } catch (e) {
         this.debug(e);
-        throw 'Unable to render page: ' + e.message;
+        throw {
+            message:'Unable to render page: ' + e.message
+        };
 
     } finally {
         this.Handlebars.unregisterPartial('body');
@@ -143,9 +145,9 @@ Taft.prototype._createTemplate = function(file, options) {
     // protect against infinite loops
     // if file is foo.hbs, layout can't be foo.hbs
     // if file is default.hbs, layout can't be default.hbs
-    if (context.layout || this.defaultLayout)
-        if ([this.defaultLayout, context.layout].indexOf(path.basename(file)) === -1)
-            templateOptions.layout = context.layout || this.defaultLayout;
+    if (context.layout || this._defaultLayout)
+        if ([this._defaultLayout, context.layout].indexOf(path.basename(file)) === -1)
+            templateOptions.layout = context.layout || this._defaultLayout;
 
     // class data extended by current context
     return new Template(content.trimLeft(), templateOptions);
@@ -158,6 +160,15 @@ Taft.prototype._createTemplate = function(file, options) {
 Taft.prototype.template = function(file) {
     this.debug('Parsing ' + file);
     this._templates[path.resolve(file)] = this._createTemplate(file);
+
+    return this;
+};
+
+Taft.prototype.defaultLayout = function(layout) {
+    if (this._layouts[path.basename(layout)])
+        this._defaultLayout = layout;
+    else
+        this.stderr('Not settings layout. Could not find: '+ layout);
 
     return this;
 };
