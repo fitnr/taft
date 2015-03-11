@@ -41,11 +41,11 @@ function taft(file, options) {
 module.exports.Taft = Taft;
 
 function Taft(options) {
-    if (!(this instanceof Taft)) return new Taft(options);
-
-    this.Handlebars = options.handlebars || require('handlebars');
+    if (!(this instanceof Taft)) return new Taft(options || {});
 
     this._options = options || {};
+
+    this.Handlebars = this._options.handlebars || require('handlebars');
 
     this.silent = this._options.silent || false;
     this.verbose = this._options.verbose || false;
