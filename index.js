@@ -20,14 +20,13 @@ module.exports.taft = taft;
 
 function mergeGlob(list) {
     if (!Array.isArray(list)) list = [list];
-    list = list.map(function(e) {
-        var globbed;
+    list = list.map(function(item) {
         try {
-            globbed = glob.sync(e);
-        } catch (e) {
-            globbed = [];
+            var globbed = glob.sync(item);
+            return globbed.length ? globbed : item;
+        } catch (err) {
+            return item;
         }
-        return globbed.length ? globbed : e;
     });
     list = Array.prototype.concat.apply([], list);
 
@@ -78,9 +77,8 @@ function Taft(options) {
 /* 
  * Layouts are just templates of a different name
 */
-Taft.prototype.layouts = function(layouts) {
-    if (typeof(layouts) === 'string')
-        layouts = [layouts];
+Taft.prototype.layouts = function() {
+    var layouts = Array.prototype.concat.apply([], Array.prototype.slice.call(arguments));
 
     layouts = mergeGlob(layouts);
 
@@ -364,28 +362,34 @@ Taft.prototype.helpers = function() {
     return this;
 };
 
-Taft.prototype.partials = function(partials) {
-    if (typeof(partials) == 'string') partials = [partials];
+Taft.prototype.partials = function() {
+    var partials = Array.prototype.concat.apply([], Array.prototype.slice.call(arguments));
 
     var registered = [];
 
-    if (Array.isArray(partials)) {
-        partials = mergeGlob(partials);
+    mergeGlob(partials).forEach((function(partial) {
+        if (typeof(partial) === 'object') {
 
-        partials.forEach((function(partial) {
+            for (var name in partial) {
+                if (partial.hasOwnProperty(name)) {
+                    this.Handlebars.registerPartial(name, partials[name]);
+                    registered.push(name);
+                }
+            }
+
+        } else {
+
             var p = path.basename(partial, path.extname(partial));
+
             try {
                 this.Handlebars.registerPartial(p, fs.readFileSync(partial, 'utf8'));
                 registered.push(p);
             } catch (err) {
                 this.stderr("Could not register partial: " + p);
             }
-        }).bind(this));
+        }
 
-    } else if (typeof(partials) === 'object')
-        for (var name in partials)
-            if (partials.hasOwnProperty(name))
-                this.Handlebars.registerPartial(name, partials[name]);
+    }).bind(this));
 
     if (registered.length) this.debug('registered partials: ' + registered.join(', '));
 
