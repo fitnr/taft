@@ -292,70 +292,76 @@ Taft.prototype.build = function(file, data) {
     return content;
 };
 
-Taft.prototype.helpers = function(helpers) {
-    var registered = [];
+Taft.prototype.helpers = function() {
+    var helpers = Array.prototype.concat.apply([], Array.prototype.slice.call(arguments));
+    var current = Object.keys(this.Handlebars.helpers);
 
-    if (typeof(helpers) === 'string') helpers = [helpers];
+    mergeGlob(helpers).forEach((function(h) {
+        var module;
 
-    if (Array.isArray(helpers))
-        registered = this.registerHelperFiles(mergeGlob(helpers));
+        try {
+            if (typeof(h) === 'object') {
+                this.Handlebars.registerHelper(h);
 
-    else if (typeof(helpers) == 'object') {
-        this.Handlebars.registerHelper(helpers);
-        registered = Object.keys(helpers);
-    }
+            } else if (typeof(h) === 'string') {
 
-    else if (typeof(helpers) == 'undefined') {}
+                // load the module
+                try {
+                    require.resolve(h);
+                    module = require(h);
+                } catch(err) {
+                    if (err.code === 'MODULE_NOT_FOUND')
+                        module = require(path.join(process.cwd(), h));
+                }
 
-    else
-        this.stderr('Ignoring passed helpers because they were a ' + typeof(helpers) + '. Expected Array or Object.');
+                // register the module one of a couple of ways
+                if (module.register)
+                    try {
+                        module.register(this.Handlebars, this._options);    
+                    } catch (err) {
+                        this.debug("Register function err for " + h);
+                    }
+
+                else if (typeof(module) === 'function')
+                    try {
+                        this.Handlebars.registerHelper(module(), this._options);
+                        
+                        if (Object.keys(this.Handlebars.helpers).length === current.length)
+                            throw {
+                                message: "Registering by passing function in " + h + " didn't work. Trying another way",
+                            };
+
+                    } catch (err) {
+                        module(this.Handlebars, this._options);
+                    }
+
+                else if (typeof(module) === 'object')
+                    this.Handlebars.registerHelper(module);
+
+                else
+                    throw {
+                        message: "Didn't find a function or object in " + h,
+                    };
+            } else {
+                this.stderr('Ignoring helper because it\'s a ' + typeof(h) + '. Expected an object or the name of a module');
+            }
+
+        } catch (err) {
+            this.stderr("Error registering helper '" + h + "'");
+            this.stderr(err);
+        }
+    }).bind(this));
+
+    // return new helpers
+    var registered = Object.keys(this.Handlebars.helpers).filter(function(e) {
+        return current.indexOf(e) === -1;
+    });
 
     if (registered.length) this.debug('registered helpers: ' + registered.join(', '));
 
     this._knownHelpers = Array.prototype.concat.apply(this._knownHelpers, registered);
 
     return this;
-};
-
-Taft.prototype.registerHelperFiles = function(helpers) {
-    var current = Object.keys(this.Handlebars.helpers);
-
-    helpers.forEach((function(h) {
-        var module;
-        try {
-            // load the module
-            try {
-                module = require(path.join(process.cwd(), h));
-
-            } catch (err) {
-                if (err.code === 'MODULE_NOT_FOUND')
-                    module = require(h);
-            }
-
-            // register the module one of a couple of ways
-            if (module.register)
-                module.register(this.Handlebars, this._options);
-
-            else if (typeof(module) === 'function')
-                module(this.Handlebars, this._options);
-
-            else if (typeof(module) === 'object')
-                this.Handlebars.registerHelper(module);
-
-            else
-                throw "not a function or object.";
-
-        } catch (err) {
-            this.stderr("Error registering helper '" + h + "'");
-            this.stderr(err);
-        }
-
-    }).bind(this));
-
-    // return new helpers
-    return Object.keys(this.Handlebars.helpers).filter(function(e) {
-        return current.indexOf(e) === -1;
-    });
 };
 
 Taft.prototype.partials = function(partials) {
