@@ -31,7 +31,7 @@ describe('Taft data', function(){
         this.T._data.json.cat.should.equal('meow');
     });
 
-    it('should read produce pages with that data', function() {
+    it('should produce pages with that data', function() {
         result = ""+this.T.build(__dirname + '/pages/test.handlebars');
         result.should.equal(this.fixture);
     });

@@ -5,8 +5,7 @@
 var fs = require('rw'),
     glob = require('glob'),
     path = require('path'),
-    extend = require('extend'),
-    clone = require('clone-object'),
+    merge = require('merge'),
     // HH = require('handlebars-helpers'),
     Template = require('./lib/template'),
     ini = require('ini'),
@@ -106,7 +105,7 @@ Taft.prototype._applyLayout = function(name, content, pageData) {
         // override passed pageData with global data
         // (because layout is 'closer' to core of things)
         // then append it in a page key
-        pageData.page = clone(pageData);
+        pageData.page = merge.clone(pageData);
 
         var page = this._layouts[name].build(this.Handlebars, pageData, {noOverride: true});
 
@@ -136,7 +135,7 @@ Taft.prototype._createTemplate = function(file, options) {
         content = source.content || '';
 
     var templateOptions = {
-        data: extend(clone(this._data), context),
+        data: merge(true, this._data, context),
         helpers: this._helpers
     };
 
@@ -175,16 +174,14 @@ Taft.prototype.defaultLayout = function(layout) {
     Takes a mixed list of (1) files, (2) js objects, (3) JSON, (4) YAML, (5) INI
 */
 Taft.prototype.data = function() {
-    var args = Array.prototype.concat.apply([], Array.prototype.slice.call(arguments));
-
-    args = mergeGlob(args);
+    var data = Array.prototype.concat.apply([], Array.prototype.slice.call(arguments));
 
     var parseExtend = function(argument) {
         var r = this._parseData(argument);
-        extend(this._data, r);
+        merge(this._data, r);
     };
 
-    args.forEach(parseExtend.bind(this));
+    mergeGlob(data).forEach(parseExtend.bind(this));
 
     return this;
 };
@@ -279,7 +276,7 @@ Taft.prototype.build = function(file, data) {
     var content = tpl.build(this.Handlebars, data);
 
     if (this._layouts[tpl.layout])
-        content = this._applyLayout(tpl.layout, content.toString(), extend(tpl.data, data));
+        content = this._applyLayout(tpl.layout, content.toString(), merge(tpl.data, data));
 
     // optionally add extension
     if (tpl.data.ext)
