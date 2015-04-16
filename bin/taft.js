@@ -82,6 +82,8 @@ processArgs(program, function(err, warn, files) {
         if (err) process.exit(1);
     }
 
+    // use output extname if given
+    program.ext = path.extname(program.output) || program.ext;
     // remove . from extension
     var ext = (program.ext.slice(0, 1) === '.') ? program.ext.slice(1) : program.ext;
 
