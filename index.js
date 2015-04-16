@@ -312,14 +312,14 @@ Taft.prototype.helpers = function() {
                 // register the module one of a couple of ways
                 if (module.register)
                     try {
-                        module.register(this.Handlebars, this._options);    
+                        module.register(this.Handlebars, this._options, {});    
                     } catch (err) {
                         this.debug("Register function err for " + h);
                     }
 
                 else if (typeof(module) === 'function')
                     try {
-                        this.Handlebars.registerHelper(module(), this._options);
+                        this.Handlebars.registerHelper(module());
                         
                         if (Object.keys(this.Handlebars.helpers).length === current.length)
                             throw {
