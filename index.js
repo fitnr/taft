@@ -217,7 +217,7 @@ Taft.prototype._parseData = function(source, base, ext) {
             else throw 1;
 
         } catch (e) {
-            this.stdout("Didn't recognize format of " + source);
+            this.stderr("Didn't recognize format of " + source);
         }
     }
 
@@ -395,7 +395,7 @@ Taft.prototype.partials = function() {
 
 Taft.prototype.stderr = function(err) {
     if (!this.silent) {
-        err = err.hasOwnProperty('message') ? err.message : err;
+        err = 'message' in err ? err.message : err;
         console.error(err);
     }
 };
