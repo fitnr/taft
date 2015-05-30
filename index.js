@@ -368,7 +368,7 @@ Taft.prototype.partials = function() {
         if (typeof(partial) === 'object') {
 
             for (var name in partial) {
-                if (partial.hasOwnProperty(name)) {
+                if (name in partial) {
                     this.Handlebars.registerPartial(name, partials[name]);
                     registered.push(name);
                 }
