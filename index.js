@@ -368,7 +368,7 @@ Taft.prototype.partials = function() {
         if (typeof(partial) === 'object') {
 
             for (var name in partial) {
-                if (name in partial) {
+                if (partial.hasOwnProperty(name)) {
                     this.Handlebars.registerPartial(name, partials[name]);
                     registered.push(name);
                 }
@@ -395,7 +395,7 @@ Taft.prototype.partials = function() {
 
 Taft.prototype.stderr = function(err) {
     if (!this.silent) {
-        err = 'message' in err ? err.message : err;
+        err = typeof err === 'object' && 'message' in err ? err.message : err;
         console.error(err);
     }
 };
