@@ -93,7 +93,8 @@ Taft.prototype.layouts = function() {
     else if (this._options.defaultLayout)
         this._defaultLayout = path.basename(this._options.defaultLayout);
 
-    this.debug('Set default layout to ' + this._defaultLayout);
+    if (this._defaultLayout)
+        this.debug('Set default layout to ' + this._defaultLayout);
 
     return this;
 };
@@ -200,6 +201,7 @@ Taft.prototype._parseData = function(source, base, ext) {
         source = source.trim();
 
         var line1 = source.slice(0, 1024).split(/\r?\n/).shift();
+        
 
         try {
             if (ext === '.yaml' || line1 === '---')
@@ -218,6 +220,7 @@ Taft.prototype._parseData = function(source, base, ext) {
 
         } catch (e) {
             this.stderr("Didn't recognize format of " + source);
+            this.stderr(e);
         }
     }
 
