@@ -166,7 +166,7 @@ module.exports = {
 
 ### Data
 
-In addition to the YAML front matter in layouts and pages, Taft will read data from YAML or JSON files, or from stdin. Use '-' as the file name to read from stdin.
+In addition to the YAML front matter in layouts and pages, Taft will read data from INI, YAML or JSON files, or from stdin input in those formats. Use '-' as the file name to read from stdin.
 
 ````
 $ taft --data data/data.yaml source/page1.hbs > build/page1.hbs
