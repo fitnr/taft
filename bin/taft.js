@@ -48,22 +48,6 @@ function replaceExt(file, ext) {
     return file.slice(0, -path.extname(file).length) + '.' + ext;
 }
 
-// Must be bound to {file: foo, build: build} object
-function save(er) {
-    /*jshint validthis:true */
-    if (er) console.error(er);
-
-    var file = this.file;
-
-    rw.writeFile(file, this.content, 'utf8', function(err) {
-
-        if (err) console.error(err);
-
-        if (program.silent !== true && file !== '/dev/stdout')
-            console.log(file);
-    });
-}
-
 // setup options
 var options = {
     layouts: program.layout || undefined,
@@ -84,6 +68,7 @@ processArgs(program, function(err, warn, files) {
 
     // use output extname if given
     program.ext = path.extname(program.output) || program.ext;
+
     // remove . from extension
     var ext = (program.ext.slice(0, 1) === '.') ? program.ext.slice(1) : program.ext;
 
@@ -97,11 +82,24 @@ processArgs(program, function(err, warn, files) {
         if (build) {
             outfile = (outfile === '/dev/stdout') ? outfile : replaceExt(outfile, build.ext || ext);
 
-            mkdirp(path.dirname(outfile), save.bind({
-                content: build.toString(),
-                file: outfile
-            }));
+            save(outfile, build.tostring());
         }
     });
 
 });
+
+function save(file, content) {
+    mkdirp(path.dirname(file), function(e) {
+
+        if (e) return console.error(e);
+
+        rw.writeFile(file, content, 'utf8', function(e) {
+
+            if (e) console.error(e);
+
+            else if (program.silent !== true && file !== '/dev/stdout')
+                console.log(file);
+
+        });
+    });
+}
