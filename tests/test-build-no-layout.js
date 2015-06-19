@@ -19,7 +19,7 @@ describe('Taft building without layout', function(){
     before(function(){
         this.options = options;
         this.options.layouts = undefined;
-        this.T = taft.Taft(this.options);
+        this.T = taft(this.options);
         this.fixture = fs.readFileSync(__dirname + '/fixtures/no-layout.html', {encoding: 'utf-8'});
 
         this.result = ""+this.T.build(__dirname + '/pages/test.handlebars');

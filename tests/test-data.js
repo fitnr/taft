@@ -16,7 +16,7 @@ var options = {
 
 describe('Taft data', function(){
     before(function(){
-        this.T = taft.Taft(options);
+        this.T = taft(options);
         this.fixture = fs.readFileSync(__dirname + '/fixtures/index-data.html', {encoding: 'utf-8'});
         Handlebars.unregisterHelper('foo');
     });

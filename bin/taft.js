@@ -8,7 +8,7 @@ var path = require('path'),
     program = require('commander');
  
 var processArgs = require('../lib/process-args.js'),
-    Taft = require('..').Taft;
+    Taft = require('..');
 
 function collect(val, memo) {
   memo.push(val);

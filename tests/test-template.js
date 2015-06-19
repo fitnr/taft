@@ -18,7 +18,7 @@ var options = {
 describe('Taft creating templates', function(){
 
     before(function(){
-        this.T = taft.Taft(options);
+        this.T = taft(options);
         this.fixture = fs.readFileSync(__dirname + '/fixtures/index.html', {encoding: 'utf-8'});
     });
 

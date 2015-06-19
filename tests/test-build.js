@@ -20,7 +20,7 @@ var options = {
 describe('Taft building with layout', function(){
 
     before(function(){
-        this.T = taft.Taft(options);
+        this.T = taft(options);
         this.fixture = fs.readFileSync(__dirname + '/fixtures/index.html', {encoding: 'utf-8'});
     });
 

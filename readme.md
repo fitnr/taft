@@ -237,7 +237,7 @@ $ taft --data newt.ini --data 'frog-*.yaml' source/page1.hbs
 
 Taft is designed to use on the command line, but it has a simple API. Layouts, partials, helpers can be passed a list of files or globs, or a single filename as a string. Javascript objects are also acceptable for the data option.
 ````javascript
-Taft = require('taft');
+var Taft = require('taft');
 
 var options = {
     layouts: ['layout.hbs']
@@ -246,7 +246,7 @@ var options = {
     helpers: 'helper.js',
     defaultLayout: 'layout.hbs'
 };
-var taft = new Taft.Taft(options);
+var taft = new Taft(options);
 
 // returns a Content object, which is just a String
 // that possibly has two properties:
@@ -259,7 +259,7 @@ var result = taft.build('source/page1.hbs');
 Taft also comes with chainable methods for adding layouts, helpers, data or partials. These can take the same arguments as the options. The above and below blocks of code are equivalent.
 
 ````javascript
-var taft = new Taft.Taft()
+var taft = new Taft()
     .layouts('layout.hbs')
     .helpers(['helpers.js'])
     .data([{"key": "foo"}, 'data.json'])
@@ -267,4 +267,19 @@ var taft = new Taft.Taft()
     .defaultLayout('layout.hbs');
 
 var result = taft.build('source/page1.hbs');
+````
+
+### Shorthand
+
+For a super-quick build of a single file, use the `Taft.taft` method:
+
+````javascript
+var Taft = require('taft');
+
+var options = {
+    layouts: ['layout.hbs']
+}
+
+// returns a string containing the result
+var result = Taft.taft('source/page1.handlebars', options);
 ````

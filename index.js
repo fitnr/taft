@@ -15,8 +15,6 @@ var fs = require('rw'),
 var STDIN_RE = /^(\w+:)?(\/dev\/stdin?|-)/;
 var DATA_FORMATS = ['.json', '.yaml', '.ini'];
 
-module.exports.taft = taft;
-
 function mergeGlob(list) {
     if (!Array.isArray(list)) list = [list];
     list = list.map(function(item) {
@@ -33,10 +31,12 @@ function mergeGlob(list) {
 }
 
 function taft(file, options) {
-    return new Taft(options).build(require('handlebars'), file);
+    return new Taft(options)
+        .build(file).toString();
 }
 
-module.exports.Taft = Taft;
+module.exports = Taft;
+module.exports.taft = taft;
 
 function Taft(options) {
     if (!(this instanceof Taft)) return new Taft(options || {});

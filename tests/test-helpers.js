@@ -7,7 +7,7 @@ var Handlebars = require('handlebars');
 describe('taft helpers', function(){
 
     it('should have registered helpers', function(){
-        W = new taft.Taft({
+        W = new taft({
             defaultLayout: 'basic',
             helpers: ['tests/helpers/cow-helper.js'],
             handlebars: Handlebars
@@ -17,7 +17,7 @@ describe('taft helpers', function(){
     });
 
     it('should register a helper string', function() {
-        S = new taft.Taft({
+        S = new taft({
             helpers: 'tests/helpers/other-helpers.js',
         });
 
