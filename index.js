@@ -77,11 +77,11 @@ function Taft(options) {
  * Layouts are just templates of a different name
 */
 Taft.prototype.layouts = function() {
+    if (arguments.length === 0) return Object.keys(this._layouts);
+
     var layouts = Array.prototype.concat.apply([], Array.prototype.slice.call(arguments));
 
-    layouts = mergeGlob(layouts);
-
-    layouts.forEach((function(layout) {
+    mergeGlob(layouts).forEach((function(layout) {
         var name = path.basename(layout);
         this.debug('Adding layout ' + name);
         this._layouts[name] = this._createTemplate(layout);
@@ -170,6 +170,9 @@ Taft.prototype.template = function(file) {
 };
 
 Taft.prototype.defaultLayout = function(layout) {
+
+    if (layout === undefined) return this._defaultLayout;
+
     if (this._layouts[path.basename(layout)])
         this._defaultLayout = layout;
     else
@@ -182,6 +185,8 @@ Taft.prototype.defaultLayout = function(layout) {
     Takes a mixed list of (1) files, (2) js objects, (3) JSON, (4) YAML, (5) INI
 */
 Taft.prototype.data = function() {
+    if (arguments.length === 0) return this._data;
+
     var data = Array.prototype.concat.apply([], Array.prototype.slice.call(arguments));
 
     var parseExtend = function(argument) {
@@ -298,6 +303,8 @@ Taft.prototype.build = function(file, data) {
 };
 
 Taft.prototype.helpers = function() {
+    if (arguments.length === 0) return Object.keys(this.Handlebars.helpers);
+
     var helpers = Array.prototype.concat.apply([], Array.prototype.slice.call(arguments));
     var current = Object.keys(this.Handlebars.helpers);
 
@@ -370,6 +377,8 @@ Taft.prototype.helpers = function() {
 };
 
 Taft.prototype.partials = function() {
+    if (arguments.length === 0) return Object.keys(this.Handlebars.partials);
+
     var partials = Array.prototype.concat.apply([], Array.prototype.slice.call(arguments));
 
     var registered = [];

@@ -35,13 +35,29 @@ describe('Taft chaining', function(){
     it('Should chain', function(){
         this.T2.helpers([]).should.be.instanceOf(taft);
         this.T2.partials([]).should.be.instanceOf(taft);
-        this.T2.data([]).should.be.instanceOf(taft);
+        this.T2.data({a: 1}).should.be.instanceOf(taft);
         this.T2.layouts([]).should.be.instanceOf(taft);
     });
 
     it('defaultLayout should work', function(){
         this.T2.defaultLayout('default.html').should.be.instanceOf(taft);
         this.T2._defaultLayout.should.equal('default.html');
+    });
+
+    it('Should return contents when arguments are empty', function(){
+        this.T2.helpers().should.be.instanceOf(Array);
+        this.T2.helpers().should.containDeep(['each']);
+
+        this.T2.partials().should.be.instanceOf(Array);
+        this.T2.partials().should.be.containDeep(['body']);
+
+        this.T2.data([{b: 2}]);
+        this.T2.data().should.be.instanceOf(Object);
+        this.T2.data().a.should.equal(1);
+        this.T2.data().b.should.equal(2);
+
+        this.T2.layouts().should.be.instanceOf(Array);
+        should.deepEqual(this.T2.layouts(), ['default.html', 'partial.html']);
     });
 
 });
