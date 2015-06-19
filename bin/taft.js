@@ -82,7 +82,7 @@ processArgs(program, function(err, warn, files) {
         if (build) {
             outfile = (outfile === '/dev/stdout') ? outfile : replaceExt(outfile, build.ext || ext);
 
-            save(outfile, build.tostring());
+            save(outfile, build.toString());
         }
     });
 
