@@ -4,6 +4,7 @@
   "description": "Generate static html files from Handlebars files with YAML front matter",
   "main": "index.js",
   "scripts": {
+    "cover": "istanbul cover _mocha -- tests",
     "test": "mocha tests/*.js"
   },
   "bin": "bin/taft.js",
@@ -12,10 +13,11 @@
     "url": "http://github.com/fitnr/taft"
   },
   "keywords": [
+    "command line utilities",
     "yfm",
     "yaml",
     "handlebars",
-    "static",
+    "static site generator",
     "html"
   ],
   "author": "Neil Freeman",
