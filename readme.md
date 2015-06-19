@@ -24,21 +24,21 @@ Run this command:
 ````
 $ taft source/page1.hbs 
 taft building source/page1.hbs
-<p>My cauldron is bubbling and my cat is black.</p>
+<p>The cauldron in my cavern is bubbling.</p>
 <script src="magic-spells.js"></script>
 ````
 
-Note that the status message outputs to stderr, so one can safely pipe the result.
+By default, output goes to stdout and status messages output to stderr, so one can safely pipe the result.
 
-By default, output goes to stdout. Specify a single output file with `--output` or `-o`:
+Specify a single output file with `--output` or `-o`:
 ````
 $ taft source/page1.hbs -o build/page1.html
 build/page1.html
 ````
 
-To generate more than one file, just pass a destination directory.
+To generate more than one file, pass a destination directory.
 ````
-$ taft source/page1.hbs source/page2.hbs other/*.hbs --dest-dir build/
+$ taft source/page1.hbs source/page2.hbs 'other/*.hbs' --dest-dir build/
 taft building source/page1.hbs
 build/page1.html
 taft building source/page2.hbs
@@ -50,14 +50,41 @@ build/more.html
 Read from stdin by giving '-' as the file name.
 
 ````
-# useless use of cat
 $ cat source/page1.hbs | taft - > build/page1.html
 ````
+
+#### Magic keys in your YAML front matter
+
+Taft pays special attention to two keys in a page's YAML front matter: *ext* and *layout*. Read on for details!
+
+### Command line options
+
+````
+    -H, --helper <file>          js file that exports an object containing handlebars helpers
+    -p, --partial <file>         partial (globs are ok)
+    -d, --data <data>            JSON, YAML or INI file or data (stdin with '-' or 'key:-')
+    -t, --layout <file>          layout (template) file
+    -y, --default-layout <name>  use this layout as default
+    -o, --output <path>          output file
+    -D, --dest-dir <path>        output directory (mandatory if more than one file given)
+    -C, --cwd <path>             Saves files relative this directory
+    -e, --ext <string>           output file extension (default: html)
+    -v, --verbose                Output some debugging information
+    -s, --silent                 Don't output anything
+````
+
+A quick run-down:
+
+* `--default-layout`: The basename of the layout to use for pages with no layout given. By default, there is no default layout.
+* `--ext`: By default when using `--dest-dir`, files are saved as '.html'. This option specifies another extension. This will be overridden if the file has an `ext` key in its YAML front matter.
+* `--cwd`: When used in combination with `--dest-dir`, files will be saved relative to `--cwd`. For example, `--cwd=src/pages --dest-dir build` will save `src/pages/page.html` to `build/page.html`.
+
+The following sections give details about the main options: `--data`, `--helper`, `--layout` and `--partial`. You'll find that a complex Taft command can get very long. That's OK! Use a Makefile to tract and reproduce commands.
 
 ### Layouts
 Use a layout (aka template) to wrap a file with content. The layout should use the `{{> body}}` helper to refer to the content.
 
-The data on the child page is available on the layout. If there's a conflict, use the 'page' prefix.
+The YFM data from the content page will be available in the layout. If there's a conflict, use the 'page' prefix.
 ````handlebars
 ---
 workplace: haunted wood
@@ -65,6 +92,7 @@ script: main.js
 ---
 <p>Notes from the {{page.workplace}} and the {{workplace}}.</p>
 {{> body}}
+<script src="{{page.script}}"></script>
 <script src="{{script}}"></script>
 ````
 ````
@@ -78,7 +106,7 @@ $ taft --layout layouts/template.hbs source/page1.hbs > build/page1.html
 ````
 
 It more than one layout is registered, specify the one to use with `layout: <name>` in the page's front matter.
-If a layout named 'default' is registered, it will be used even with a page doesn't have a layout key.
+If a layout named 'default' is registered, it will be used with pages that lack a layout key.
 
 ````
 $ taft --layout layouts/default.hbs --layout layouts/potions.hbs 
@@ -88,7 +116,7 @@ $ taft --layout layouts/default.hbs --layout layouts/potions.hbs
 ````yaml
 ---
 # source/page1.hbs
-# This page will be built with the 'default' layout
+# The layout for this page will be 'layouts/default.hbs'.
 title: My Favorite Encantations
 ---
 Encantations...
@@ -96,7 +124,9 @@ Encantations...
 ````yaml
 ---
 # source/page2.hbs
-# This page will be built with the 'potions' layout
+# The layout for this page will be 'layouts/potions.hbs'.
+# Note that Taft allows you to just specify the base name of the file.
+# Don't expect things to work correctly if you have two layouts with the same basename
 title: Special Potions
 layout: potions
 ---
@@ -105,7 +135,7 @@ Potions...
 ````yaml
 ---
 # source/page3.hbs
-# This page will be built without a layout
+# This page will be built without a layout.
 layout: none
 title: Super-Special Page
 ---
@@ -127,7 +157,7 @@ taft building source/page1.hbs
 
 ### Helpers
 
-Taft will register helpers for you. You pass it a file that `exports` a helper, or the name of a NPM module, Taft will register it to Handlebars.
+Taft will register helpers for you. You pass it a file that `exports` a helper, or the name of a NPM helper module, Taft will register it to Handlebars.
 
 ````
 $ taft --helper helpers/magic.js source/page1.hbs > build/page1.hbs
@@ -184,31 +214,10 @@ $ echo '["guffaw", "cackle"]' | taft --data laughs:- source/page2.hbs > build/pa
 {{/laugh}}
 ````
 
-### Other options
+### About specifying files
 
-* `--default-layout`: The basename of the layout to use for pages with no layout given. By default, there is no default layout.
-* `--ext`: By default when using `--dest-dir`, files are saved as '.html'. This option specifies another extension. This will be overridden if the file has an `ext` key in its YAML front matter.
-* `--cwd`: When used in combination with `--dest-dir`, files will be saved relative to `--cwd`. For example, `--cwd=src/pages --dest-dir build` will save `src/pages/page.html` to `build/page.html`.
+If you pass a glob (a path with a wildcard) to `--partial`, `--data`, `--layout` or `--helper`, make sure to enclose it in single quotes, or else your shell will expand it, and Taft will interpret the files after the first one as pages.
 
-Complete option list:
-
-````
-    -H, --helper <file>          js file that exports an object containing handlebars helpers
-    -p, --partial <file>         partial (globs are ok)
-    -d, --data <data>            JSON, YAML or INI file or data (stdin with '-' or 'key:-')
-    -t, --layout <file>          layout (template) file
-    -y, --default-layout <name>  use this layout as default
-    -o, --output <path>          output file
-    -D, --dest-dir <path>        output directory (mandatory if more than one file given)
-    -C, --cwd <path>             Saves files relative this directory
-    -e, --ext <string>           output file extension (default: html)
-    -v, --verbose                Output some debugging information
-    -s, --silent                 Don't output anything
-````
-
-### Note
-
-If you pass a glob to `--partial`, `--data`, `--layout` or `--helper`, make sure to enclose it in single quotes, or else your shell will expand it
 ````
 $ taft --partial 'partials/*' source/page1.hbs
 ````
@@ -226,7 +235,7 @@ $ taft --data newt.ini --data 'frog-*.yaml' source/page1.hbs
 
 ## API
 
-Taft is designed to use on the command line, but it has a simple API. Layouts, partials, helpers can be passed a list of files or globs, or a single filename as a string. Data files can be a list of files or javascript objects.
+Taft is designed to use on the command line, but it has a simple API. Layouts, partials, helpers can be passed a list of files or globs, or a single filename as a string. Javascript objects are also acceptable for the data option.
 ````javascript
 Taft = require('taft');
 
@@ -235,8 +244,6 @@ var options = {
     partials: 'layout.partial'
     data: [{"key": "foo"}, 'data.json'],
     helpers: 'helper.js',
-    verbose: false // control the amount of logging to console
-    silent: false
     defaultLayout: 'layout.hbs'
 };
 var taft = new Taft.Taft(options);
