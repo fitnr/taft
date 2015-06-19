@@ -55,7 +55,7 @@ $ cat source/page1.hbs | taft - > build/page1.html
 
 #### Magic keys in your YAML front matter
 
-Taft pays special attention to two keys in a page's YAML front matter: *ext* and *layout*. Read on for details!
+Taft pays special attention to some keys in a page's YAML front matter: *ext*, *layout* and *published*. If `published: false`, then the page won't be built. Read on for details on the other two keys!
 
 ### Command line options
 
@@ -105,14 +105,6 @@ $ taft --layout layouts/template.hbs source/page1.hbs > build/page1.html
 <script src="main.js"></script>
 ````
 
-It more than one layout is registered, specify the one to use with `layout: <name>` in the page's front matter.
-If a layout named 'default' is registered, it will be used with pages that lack a layout key.
-
-````
-$ taft --layout layouts/default.hbs --layout layouts/potions.hbs 
-    source/page1.hbs source/page2.hbs source/page3.hbs -C _source -D build
-````
-
 ````yaml
 ---
 # source/page1.hbs
@@ -140,6 +132,17 @@ layout: none
 title: Super-Special Page
 ---
 Special Stuff...
+````
+
+#### Default layouts
+
+One can take advantage of a default layout one of three ways: Specify it explicity with the `--default-layout` option, Have a layout file named `default.*`, or only register one layout.
+
+If you have a default layout but want to turn it off for a page, put `layout: false` in the YAML front matter.
+
+````
+$ taft --layout layouts/default.hbs --layout layouts/potions.hbs 
+    source/page1.hbs source/page2.hbs source/page3.hbs -C _source -D build
 ````
 
 ### Partials

@@ -140,12 +140,19 @@ Taft.prototype._createTemplate = function(file, options) {
         helpers: this._helpers
     };
 
+    // If YFM has layout: null or layout: false, don't assign a layout
+    if (context.hasOwnProperty('layout') && !context.layout)
+        this.debug('Not using layout');
+    else
+        templateOptions.layout = context.layout || this._defaultLayout;
+
     // protect against infinite loops
     // if file is foo.hbs, layout can't be foo.hbs
     // if file is default.hbs, layout can't be default.hbs
-    if (context.layout || this._defaultLayout)
-        if ([this._defaultLayout, context.layout].indexOf(path.basename(file)) === -1)
-            templateOptions.layout = context.layout || this._defaultLayout;
+    if (templateOptions.layout === path.basename(file)) {
+        delete templateOptions.layout;
+        this.debug("Ignoring layout for " + file + ", since it seems to be itself.");
+    }
 
     // class data extended by current context
     return new Template(content.trimLeft(), templateOptions);
@@ -166,7 +173,7 @@ Taft.prototype.defaultLayout = function(layout) {
     if (this._layouts[path.basename(layout)])
         this._defaultLayout = layout;
     else
-        this.stderr('Not settings layout. Could not find: '+ layout);
+        this.stderr('Not setting layout. Could not find: '+ layout);
 
     return this;
 };
@@ -274,7 +281,7 @@ Taft.prototype.build = function(file, data) {
     }
 
     this.stderr('building: ' + file);
-    this.debug('layout: ' + tpl.layout);
+    if (tpl.layout) this.debug('layout: ' + tpl.layout);
 
     var content = tpl.build(this.Handlebars, data);
 
