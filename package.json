@@ -41,6 +41,7 @@
     "yfm": "^0.2.0"
   },
   "devDependencies": {
-    "should": "^5.1.0"
+    "should": "^5.1.0",
+    "mocha": "^2.2.0"
   }
 }

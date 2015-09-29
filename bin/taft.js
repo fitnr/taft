@@ -95,8 +95,10 @@ function save(file, content) {
 
         rw.writeFile(file, content, 'utf8', function(e) {
 
-            if (e) console.error(e);
-
+            if (e) {
+                console.error(e);
+                return;
+            }
             else if (program.silent !== true && file !== '/dev/stdout')
                 console.log(file);
 
