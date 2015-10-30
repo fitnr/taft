@@ -1,6 +1,6 @@
 {
   "name": "taft",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Generate static html files from Handlebars files with YAML front matter",
   "main": "index.js",
   "scripts": {
@@ -21,7 +21,7 @@
     "html"
   ],
   "author": "Neil Freeman",
-  "license": "GPLv3",
+  "license": "GPL-3.0",
   "bugs": {
     "url": "https://github.com/fitnr/taft/issues"
   },
