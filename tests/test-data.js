@@ -10,6 +10,9 @@ var options = {
         __dirname + '/data/ini.ini',
         __dirname + '/data/json.json',
         __dirname + '/data/yaml.yaml',
+        {"test": true},
+        {"a": 2},
+        '{"bees": "bees"}',
     ],
     handlebars: Handlebars
 };
@@ -17,7 +20,6 @@ var options = {
 describe('Taft data', function(){
     before(function(){
         this.T = taft(options);
-        this.fixture = fs.readFileSync(__dirname + '/fixtures/index-data.html', {encoding: 'utf-8'});
         Handlebars.unregisterHelper('foo');
     });
 
@@ -31,9 +33,13 @@ describe('Taft data', function(){
         this.T._data.json.cat.should.equal('meow');
     });
 
-    it('should produce pages with that data', function() {
-        result = ""+this.T.build(__dirname + '/pages/test.handlebars');
-        result.should.equal(this.fixture);
+    it('should parse a javascript object', function(){
+        this.T._data.test.should.equal(true);
     });
 
+    it('should produce pages with that data that match fixtures/index-data.html', function() {
+        fixture = fs.readFileSync(__dirname + '/fixtures/index-data.html', {encoding: 'utf-8'});
+        result = ""+this.T.build(__dirname + '/pages/test.handlebars');
+        result.should.equal(fixture);
+    });
 });

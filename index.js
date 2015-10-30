@@ -213,7 +213,6 @@ Taft.prototype._parseData = function(source, base, ext) {
         source = source.trim();
 
         var line1 = source.slice(0, 1024).split(/\r?\n/).shift();
-        
 
         try {
             if (ext === '.yaml' || line1 === '---')

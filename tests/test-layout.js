@@ -7,6 +7,7 @@ var options = {
     partials: [__dirname + '/partials/partial.html'],
     data: [
         {a: 2},
+        '{"bees": "bees"}',
         __dirname + '/data/json.json',
         __dirname + '/data/yaml.yaml'
     ],

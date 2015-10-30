@@ -9,6 +9,7 @@ command = 'bin/taft.js';
 nodeargs = [
         "-H 'tests/helpers/*.js'",
         '--data \'{"a": 2}\'',
+        '--data \'{"bees": "bees"}\'',
         '--data tests/data/yaml.yaml',
         '--data tests/data/json.json',
         "--layout 'tests/layouts/*.html'",
