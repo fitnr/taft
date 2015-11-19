@@ -22,7 +22,7 @@ script: magic-spells.js
 
 Run this command:
 ````
-$ taft source/page1.hbs 
+taft source/page1.hbs 
 taft building source/page1.hbs
 <p>The cauldron in my cavern is bubbling.</p>
 <script src="magic-spells.js"></script>
@@ -32,13 +32,13 @@ By default, output goes to stdout and status messages output to stderr, so one c
 
 Specify a single output file with `--output` or `-o`:
 ````
-$ taft source/page1.hbs -o build/page1.html
+taft source/page1.hbs -o build/page1.html
 build/page1.html
 ````
 
 To generate more than one file, pass a destination directory.
 ````
-$ taft source/page1.hbs source/page2.hbs 'other/*.hbs' --dest-dir build/
+taft source/page1.hbs source/page2.hbs 'other/*.hbs' --dest-dir build/
 taft building source/page1.hbs
 build/page1.html
 taft building source/page2.hbs
@@ -50,7 +50,7 @@ build/more.html
 Read from stdin by giving '-' as the file name.
 
 ````
-$ cat source/page1.hbs | taft - > build/page1.html
+cat source/page1.hbs | taft - > build/page1.html
 ````
 
 #### Magic keys in your YAML front matter
@@ -96,7 +96,7 @@ script: main.js
 <script src="{{script}}"></script>
 ````
 ````
-$ taft --layout layouts/template.hbs source/page1.hbs > build/page1.html
+taft --layout layouts/template.hbs source/page1.hbs > build/page1.html
 ````
 ````html
 <p>Notes from the cavern and the haunted wood.</p>
@@ -141,7 +141,7 @@ One can take advantage of a default layout one of three ways: Specify it explici
 If you have a default layout but want to turn it off for a page, put `layout: false` in the YAML front matter.
 
 ````
-$ taft --layout layouts/default.hbs --layout layouts/potions.hbs 
+taft --layout layouts/default.hbs --layout layouts/potions.hbs 
     source/page1.hbs source/page2.hbs source/page3.hbs -C _source -D build
 ````
 
@@ -150,11 +150,11 @@ Taft will register partials from one or more files.
 
 ````
 # Register the partial {{> fun}}
-$ taft --partial partials/fun.hbs source/page1.hbs > build/page1.html
+taft --partial partials/fun.hbs source/page1.hbs > build/page1.html
 taft building source/page1.hbs
 
 # Register the all the partials in partials/
-$ taft --partial 'partials/*.hbs' source/page1.hbs > build/page1.html
+taft --partial 'partials/*.hbs' source/page1.hbs > build/page1.html
 taft building source/page1.hbs
 ````
 
@@ -163,11 +163,11 @@ taft building source/page1.hbs
 Taft will register helpers for you. You pass it a file that `exports` a helper, or the name of a NPM helper module, Taft will register it to Handlebars.
 
 ````
-$ taft --helper helpers/magic.js source/page1.hbs > build/page1.hbs
+taft --helper helpers/magic.js source/page1.hbs > build/page1.hbs
 ````
 ````
-$ npm install handlebars-helper-minify
-$ taft --helper handlebars-helper-minify source/page1.hbs > build/page1.hbs
+npm install handlebars-helper-minify
+taft --helper handlebars-helper-minify source/page1.hbs > build/page1.hbs
 ````
 
 If you're using a custom file, you can either export a function or an object containing several functions. In the former format, the function will be called with two arguments: `Handlebars` and `Taft.options`. In the latter format, the key of each function is the name of the helper.
@@ -199,17 +199,31 @@ module.exports = {
 
 ### Data
 
-In addition to the YAML front matter in layouts and pages, Taft will read data from INI, YAML or JSON files, or from stdin input in those formats. Use '-' as the file name to read from stdin.
+Use the data flag to specify sources of data, which Taft will read in INI, YAML, JSON, or fromt YAML front matter. Taft will read data from files, or from stdin input in those formats. Use '-' as the file name to read from stdin.
 
 ````
-$ taft --data data/data.yaml source/page1.hbs > build/page1.hbs
-$ echo '{"workplace": "haunted forest"}' | taft --data - source/page2.hbs > build/page2.hbs
+taft --data data/spooky.yaml source/page1.hbs > build/page1.hbs
+echo '{"workplace": "haunted forest"}' | taft --data - source/page2.hbs > build/page2.hbs
 ````
 
-Data read from stdin can be placed in a named object using the format `key:-`. You could combine this with a [tool that reads yaml front matter](https://github.com/fitnr/yfm-concat) to build navigation elements.
+In the first example above, data in the file `data/spooky.yaml` can be accessed via the object `{{spooky}}`.
 
+Use globs to read in multiple data files at once. If the `data` directory contains `spooky.yaml` and `scary.yaml`:
 ````
-$ echo '["guffaw", "cackle"]' | taft --data laughs:- source/page2.hbs > build/page2.hbs
+taft --data data/*.yaml source/page.hbs > build/page.hbs
+````
+````handlebars
+scary variable 'ghost': {{ spooky.ghost }}
+scary variable 'monster': {{ scary.monster }}
+````
+
+#### Data prefixes
+
+Prefixes can be used to place data read from files or stdin in a named object. For example:
+
+In this example, `{{laughs}}` will be a list containing "guffaw" and "cackle":
+````
+echo '["guffaw", "cackle"]' | taft --data laughs:- source/page.hbs > build/page.hbs
 ````
 ````handlebars
 {{#laughs}}
@@ -217,23 +231,34 @@ $ echo '["guffaw", "cackle"]' | taft --data laughs:- source/page2.hbs > build/pa
 {{/laugh}}
 ````
 
+Here, all of the files that match the pattern `data/*.yaml` will be placed in the list `{{cheers}}`:
+````
+taft --data 'pages:pages/*.handlebars' source/index.hbs > build/page.hbs
+````
+If might be used like this:
+````handlebars
+{{#each pages}}
+    <li>{{title}}: {{description}}</li>
+{{/pages}}
+````
+
 ### About specifying files
 
 If you pass a glob (a path with a wildcard) to `--partial`, `--data`, `--layout` or `--helper`, make sure to enclose it in single quotes, or else your shell will expand it, and Taft will interpret the files after the first one as pages.
 
 ````
-$ taft --partial 'partials/*' source/page1.hbs
+taft --partial 'partials/*' source/page1.hbs
 ````
 ````
-$ taft --data 'data/*.{yaml,json}' source/page1.hbs
+taft --data 'data/*.{yaml,json}' source/page1.hbs
 ````
 
 The `--partial`, `--data`, `--layout`, and `--helper` options are repeatable:
 ````
-$ taft --partial fun.hbs --partial cool.hbs source/page1.hbs
+taft --partial fun.hbs --partial cool.hbs source/page1.hbs
 ````
 ````
-$ taft --data newt.ini --data 'frog-*.yaml' source/page1.hbs
+taft --data newt.ini --data 'frog-*.yaml' source/page1.hbs
 ````
 
 ## API

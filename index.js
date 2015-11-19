@@ -8,12 +8,8 @@ var fs = require('rw'),
     merge = require('merge'),
     // HH = require('handlebars-helpers'),
     Template = require('./lib/template'),
-    ini = require('ini'),
-    yaml = require('js-yaml'),
+    parser = require('./lib/parser'),
     YFM = require('yfm');
-
-var STDIN_RE = /^(\w+:)?(\/dev\/stdin?|-)/;
-var DATA_FORMATS = ['.json', '.yaml', '.ini'];
 
 function mergeGlob(list) {
     if (!Array.isArray(list)) list = [list];
@@ -190,87 +186,13 @@ Taft.prototype.data = function() {
     var data = Array.prototype.concat.apply([], Array.prototype.slice.call(arguments));
 
     var parseExtend = function(argument) {
-        var r = this._parseData(argument);
+        var r = parser.parse(argument);
         merge(this._data, r);
     };
 
     mergeGlob(data).forEach(parseExtend.bind(this));
 
     return this;
-};
-
-/*
- * Parses either string or file
- * base and ext are used by readFile
- */
-Taft.prototype._parseData = function(source, base, ext) {
-    var sink, result = {};
-
-    if (typeof(source) === 'object')
-        sink = source;
-
-    else if (typeof(source) === 'string') {
-        source = source.trim();
-
-        var line1 = source.slice(0, 1024).split(/\r?\n/).shift();
-
-        try {
-            if (ext === '.yaml' || line1 === '---')
-                sink = yaml.safeLoad(source);
-
-            else if (ext === '.json' || source.slice(-1) === '}' || source.slice(-1) === ']')
-                sink = JSON.parse(source);
-
-            else if (ext === '.ini' || line1.slice(0, 1) === ';' || line1.match(/^[.+]$/) || line1.match(/^\w+ ?=/))
-                sink = ini.decode(source);
-
-            else if (typeof(ext) === 'undefined')
-                sink = this.readFile(source);
-
-            else throw 1;
-
-        } catch (e) {
-            this.stderr("Didn't recognize format of " + source);
-            this.stderr(e);
-        }
-    }
-
-    if (base) result[base] = sink;
-    else result = sink;
-
-    return result;
-};
-
-Taft.prototype.readFile = function(filename) {
-    var result = {},
-        base;
-
-    this.debug('Reading file ' + filename);
-
-    try {
-        var ext = path.extname(filename);
-
-        if (filename.match(STDIN_RE)) {
-            base = filename.split(':').shift();
-            filename = '/dev/stdin';
-        }
-        else if (DATA_FORMATS.indexOf(ext) > -1)
-            base = path.basename(filename, ext);
-
-        else throw "Didn't recognize file type " + ext;
-
-        var data = fs.readFileSync(filename, 'utf8');
-
-        result = this._parseData(data, base, ext);
-
-    } catch (err) {
-        if (err.code == 'ENOENT') this.stderr("Couldn't find data file: " + filename);
-        else this.stderr("Problem reading data file: " + filename);
-
-        this.stderr(err);
-    }
-
-    return result;
 };
 
 Taft.prototype.build = function(file, data) {

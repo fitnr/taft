@@ -3,11 +3,13 @@
 'use strict';
 
 var path = require('path'),
-    rw = require('rw'),
+    fs = require('rw'),
+    glob = require('glob'),
+    merge = require('merge'),
     mkdirp = require('mkdirp'),
     program = require('commander');
  
-var processArgs = require('../lib/process-args.js'),
+var Args = require('../lib/process-args'),
     Taft = require('..');
 
 function collect(val, memo) {
@@ -52,7 +54,8 @@ function replaceExt(file, ext) {
 var options = {
     layouts: program.layout || undefined,
     partials: program.partial || undefined,
-    data: program.data || undefined,
+    // process prefixed data
+    data: program.data ? Args.prefix(program.data) : undefined,
     helpers: program.helper || undefined,
     verbose: program.verbose || false,
     silent: program.silent || false,
@@ -60,7 +63,7 @@ var options = {
 };
 
 // process files and possibly toss errors
-processArgs(program, function(err, warn, files) {
+Args.process(program, function(err, warn, files) {
     if (err || warn) {
         console.error(err + warn);
         if (err) process.exit(1);
@@ -93,7 +96,7 @@ function save(file, content) {
 
         if (e) return console.error(e);
 
-        rw.writeFile(file, content, 'utf8', function(e) {
+        fs.writeFile(file, content, 'utf8', function(e) {
 
             if (e) {
                 console.error(e);
