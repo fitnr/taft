@@ -4,6 +4,18 @@ Generate static html files from Handlebars files with YAML front matter.
 
 Intended as a pandoc-like tool for building a simple page, or even for generating basic static websites. Taft is lightning fast and simple to use.
 
+### Installing
+
+Taft works great installed either locally or globally. If you're running a local copy, use `node_modules/.bin/taft`.
+
+````
+npm install taft
+````
+or
+````
+npm install -g taft
+````
+
 ## command line
 
 ### Basics
@@ -166,7 +178,7 @@ Taft will register helpers for you. You pass it a file that `exports` a helper, 
 taft --helper helpers/magic.js source/page1.hbs > build/page1.hbs
 ````
 ````
-npm install handlebars-helper-minify
+npm install -g handlebars-helper-minify
 taft --helper handlebars-helper-minify source/page1.hbs > build/page1.hbs
 ````
 
@@ -194,6 +206,8 @@ module.exports = {
     blackMagic function() { /* do bad stuff */ }
 };
 ````
+
+Note that helpers must be installed in the same scope that you're running `Taft`. If you're using a global copy of taft, you'll need to install the helper globally. If you don't want to pollute the global space, or want to track everything, use a local copy of taft (`node_modules/.bin/taft`).
 
 <!-- Taft comes packaged with the helpers in the [handlebars-helpers](https://github.com/assemble/handlebars-helpers) library. -->
 
