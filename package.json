@@ -1,6 +1,6 @@
 {
   "name": "taft",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Generate static html files from Handlebars files with YAML front matter",
   "main": "index.js",
   "scripts": {
