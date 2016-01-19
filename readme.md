@@ -210,7 +210,7 @@ Note that helpers must be installed in the same scope that you're running `Taft`
 
 ### Data
 
-Use the data flag to specify sources of data, which Taft will read in INI, YAML, JSON, or fromt YAML front matter. Taft will read data from files, or from stdin input in those formats. Use '-' as the file name to read from stdin.
+Use the `--data` flag to specify sources of data for Taft to read in. Use INI, YAML, JSON, or YAML front matter files. Taft will read data from files, or from stdin input in those formats. Use '-' as the file name to read from stdin.
 
 ````
 taft --data data/spooky.yaml source/page1.hbs > build/page1.hbs
@@ -227,6 +227,12 @@ taft --data data/*.yaml source/page.hbs > build/page.hbs
 scary variable 'ghost': {{ spooky.ghost }}
 scary variable 'monster': {{ scary.monster }}
 ````
+
+You can even specify an INI/JSON/YAML string as the option to the `--data` flag. This isn't terribly useful, but it's a free side-effect of reading from stdin.
+```
+taft --data 'cool=true' source/page.hbs
+taft --data '{"cool": true}' source/page.hbs
+```
 
 #### Data prefixes
 
@@ -254,6 +260,21 @@ If might be used like this:
 ````
 
 Note that you cannot provide a prefix for a single file, or a JSON or YAML string passed to `--data`.
+
+## Environment variables
+
+The `taft` command line tool adds your environment variables to a variable called ENV.
+```handlebars
+{{#if ENV.DEVELOPMENT}}
+The path is: {{ENV.PATH}}
+{{/if}}
+```
+```
+# Will print PATH
+DEVELOPMENT=1 taft source/page.hbs
+# Won't print the PATH
+DEVELOPMENT= taft source/page.hbs
+```
 
 ### About specifying files
 

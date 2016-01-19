@@ -54,7 +54,7 @@ function replaceExt(file, ext) {
 var options = {
     layouts: program.layout || undefined,
     partials: program.partial || undefined,
-    data: program.data || undefined,
+    data: program.data,
     helpers: program.helper || undefined,
     verbose: program.verbose || false,
     silent: program.silent || false,
@@ -73,6 +73,9 @@ check.args(program, function(err, warn, files) {
 
     // remove . from extension
     var ext = (program.ext.slice(0, 1) === '.') ? program.ext.slice(1) : program.ext;
+
+    // Add environment variables
+    options.data.push({ENV: process.env});
 
     // render output
     var taft = new Taft(options);
