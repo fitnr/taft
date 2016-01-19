@@ -113,9 +113,7 @@ Taft.prototype._applyLayout = function(name, content, pageData) {
 
     } catch (e) {
         this.debug(e);
-        throw {
-            message: 'unable to render page: ' + e.message
-        };
+        throw new Error('unable to render page: ' + e.message);
 
     } finally {
         this.Handlebars.unregisterPartial('body');
@@ -271,9 +269,7 @@ Taft.prototype.helpers = function() {
                         this.Handlebars.registerHelper(module());
                         
                         if (Object.keys(this.Handlebars.helpers).length === current.length)
-                            throw {
-                                message: "Registering by passing function in " + h + " didn't work. Trying another way",
-                            };
+                            throw new Error("Registering by passing function in " + h + " didn't work. Trying another way");
 
                     } catch (err) {
                         module(this.Handlebars, this._options);
@@ -283,9 +279,7 @@ Taft.prototype.helpers = function() {
                     this.Handlebars.registerHelper(module);
 
                 else
-                    throw {
-                        message: "Didn't find a function or object in " + h,
-                    };
+                    throw new Error("Didn't find a function or object in " + h);
             } else {
                 this.stderr('Ignoring helper because it\'s a ' + typeof(h) + '. Expected an object or the name of a module');
             }
