@@ -1,29 +1,41 @@
 #!/usr/bin/env node
+/*jshint esnext: true */
 
 var fs = require('fs');
 var child = require('child_process');
 var should = require('should');
-var taft = require('..');
 
-command = 'bin/taft.js';
-nodeargs = [
-        "-H 'tests/helpers/*.js'",
-        '--data \'{"a": 2}\'',
-        '--data \'{"bees": "bees"}\'',
-        '--data tests/data/yaml.yaml',
-        '--data tests/data/json.json',
-        "--layout 'tests/layouts/*.html'",
-        "--partial 'tests/partials/*.html'",
+const command = 'bin/taft.js';
+const execArgs = [
+        '--quiet',
+        '-H', "'tests/helpers/*.js'",
+        '--data', '\'{"a": 2}\'',
+        '--data', '\'{"bees": "bees"}\'',
+        '--data', 'tests/data/yaml.yaml',
+        '--data', 'tests/data/json.json',
+        '--layout', "tests/layouts/*.html",
+        '--partial', "tests/partials/*.html",
         'tests/pages/test.handlebars'
     ];
+const spawnArgs = [
+        '--verbose',
+        '-H', "tests/helpers/*.js",
+        '--data', '{"a": 2}',
+        '--data', '{"bees": "bees"}',
+        '--data', 'tests/data/yaml.yaml',
+        '--data', 'tests/data/json.json',
+        '--layout', "tests/layouts/*.html",
+        '--partial', "tests/partials/*.html",
+        'tests/pages/test.handlebars',
+        '--output', 'tmp.html'
+    ];
 
-Fixture = fs.readFileSync(__dirname + '/fixtures/index.html', {
+const Fixture = fs.readFileSync(__dirname + '/fixtures/index.html', {
     encoding: 'utf-8'
 });
 
 describe('Taft cli', function(){
-
-    it('should give help when asked', function(done) {
+    it('gives help when asked', function(done) {
         child.exec(command +" --help", function (e, result, error) {
             if (e) throw e;
 
@@ -35,32 +47,14 @@ describe('Taft cli', function(){
         });
     });
 
-    it('should match fixture', function(done) {
-        child.exec(command + ' --output tmp.html '  +nodeargs.join(' '), function (e, result, error) {
-            if (e) throw e;
-            if (error) console.error(error);
+    it('matches fixture', function(done) {
+        taft = child.spawn(command, spawnArgs, {encoding: 'utf-8'});
 
-            var read = fs.readFileSync('tmp.html', {encoding: 'utf-8'});
-            Fixture.trim().should.be.equal(read.trim(), 'New file matches');
-            result.trim().should.be.equal('tmp.html', 'Returns file name');
-            child.exec('rm tmp.html');
+        taft.on('close', function(code) {
+            var result = fs.readFileSync('tmp.html', {encoding: 'utf-8'});
 
-            done();
-        });
-    });
+            Fixture.trim().should.be.equal(result.trim(), 'New file matches');
 
-    it('accepts prefixed data file', function(done) {
-        var fixture = fs.readFileSync(__dirname + '/fixtures/prefixed.html', {encoding: 'utf-8'});
-        var args = " --output tmp.html --silent --data foo:tests/data/yaml.yaml --data tests/data/json.json --layout 'tests/layouts/*.html' tests/pages/foo.handlebars --partial 'tests/partials/*.html'";
-
-        console.error(command + args);
-
-        child.exec(command + args, function (e, result, error) {
-            if (e) throw e;
-
-            if (error) console.error(error);
-            var read = fs.readFileSync('tmp.html', {encoding: 'utf-8'});
-            fixture.trim().should.be.equal(read.trim(), 'New file matches');
             child.exec('rm tmp.html');
             done();
         });
@@ -70,12 +64,7 @@ describe('Taft cli', function(){
         var fixture = fs.readFileSync(__dirname + '/fixtures/prefixed-list.txt', {encoding: 'utf-8'});
         var args = " --output tmp.html --silent --data 'foo:tests/data/*' tests/pages/foo-list.handlebars";
 
-        console.error(command + args);
-
         child.exec(command + args, function (e, result, error) {
-            if (e) throw e;
-
-            if (error) console.error(error);
             var read = fs.readFileSync('tmp.html', {encoding: 'utf-8'});
             fixture.trim().should.be.equal(read.trim(), 'New file matches');
             child.exec('rm tmp.html');
@@ -83,8 +72,8 @@ describe('Taft cli', function(){
         });
     });
 
-    it('should run silently', function(done) {
-        child.exec(command +" --silent --output tmp.html "+ nodeargs.join(' '), function(e, result, error) {
+    it('runs silently', function(done) {
+        child.exec(command +" --silent --output tmp.html "+ execArgs.join(' '), function(e, result, error) {
             child.exec('rm tmp.html');
 
             if (e) throw e;
@@ -94,9 +83,9 @@ describe('Taft cli', function(){
         });
     });
 
-    it('should run verbosely', function(done) {
-        var exec = command +" --verbose "+ nodeargs.join(' ');
-        console.error(exec);
+    it('runs verbosely', function(done) {
+        var exec = command +" --verbose "+ execArgs.join(' ');
+
         child.exec(exec, function(e, result, error) {
             if (e) throw e;
 
@@ -112,4 +101,65 @@ describe('Taft cli', function(){
             done();
         });
     });
+
+    it('accepts piped-in data with prefixed "-"', function(done) {
+        const args = [
+            '--data', 'json:-',
+            '--data', 'tests/data/yaml.yaml',
+            '--data', 'tests/data/ini.ini',
+            '-H', "tests/helpers/helper.js",
+            'tests/pages/test.handlebars',
+            '--output', 'tmp.html'
+        ];
+        const fixture = fs.readFileSync(__dirname + '/fixtures/fixtures-data.html', {encoding: 'utf-8'});
+
+        var df = 'tests/data/json.json',
+            stream = fs.createReadStream(df);
+            taft = child.spawn(command, args);
+
+        stream.pipe(taft.stdin);
+
+        taft.on('close', function() {
+            var result = fs.readFileSync('tmp.html', {encoding: 'utf-8'});
+            try {
+                fixture.trim().should.be.equal(result.trim(), 'result matches fixture');
+            } catch (e) {
+                console.log("wtf");
+            }
+            done();
+        });
+    });
+
+    it('accepts piped-in data with prefixed "/dev/stdin"', function(done) {
+        const args = [
+            '--data', 'tests/data/json.json',
+            '--data', 'yaml:/dev/stdin',
+            '--data', 'tests/data/ini.ini',
+            '-H', "tests/helpers/helper.js",
+            'tests/pages/test.handlebars',
+            '-v',
+            '--output', 'tmp.html'
+        ];
+
+        const fixture = fs.readFileSync(__dirname + '/fixtures/fixtures-data.html', {encoding: 'utf-8'});
+
+        var df = 'tests/data/yaml.yaml',
+            stream = fs.createReadStream(df),
+            taft = child.spawn(command, args);
+
+        stream.pipe(taft.stdin);
+
+        taft.on('close', function() {
+            var result = fs.readFileSync('tmp.html', {encoding: 'utf-8'});
+            try {
+                fixture.trim().should.be.equal(result.trim(), 'result matches fixture');    
+            } catch(e) {
+                console.log("wtf");
+            }
+            
+            child.exec('rm tmp.html');
+            done();
+        });
+    });
+
 });

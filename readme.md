@@ -96,7 +96,7 @@ The following sections give details about the main options: `--data`, `--helper`
 ### Layouts
 Use a layout (aka template) to wrap a file with content. The layout should use the `{{> body}}` helper to refer to the content.
 
-The YFM data from the content page will be available in the layout. If there's a conflict, use the 'page' prefix.
+The YFM data from the content page will be available in the layout. If there's a conflict, use the 'page' object.
 ````handlebars
 ---
 workplace: haunted wood
@@ -233,7 +233,7 @@ scary variable 'monster': {{ scary.monster }}
 
 #### Data prefixes
 
-Prefixes can be used to place data read from files or stdin in a named object. For example:
+Prefixes can be used to place data read from file globs or stdin in a named object. For example:
 
 In this example, `{{laughs}}` will be a list containing "guffaw" and "cackle":
 ````
@@ -245,16 +245,18 @@ echo '["guffaw", "cackle"]' | taft --data laughs:- source/page.hbs > build/page.
 {{/laugh}}
 ````
 
-Here, all of the files that match the pattern `data/*.yaml` will be placed in the list `{{cheers}}`:
+Here, all of the files that match the pattern `data/cheer/*.yaml` will be placed in the list `{{cheer}}`:
 ````
-taft --data 'pages:pages/*.handlebars' source/index.hbs > build/page.hbs
+taft --data 'cheer:data/cheer/*.yaml' source/index.hbs > build/page.hbs
 ````
 If might be used like this:
 ````handlebars
-{{#each pages}}
+{{#each cheer}}
     <li>{{title}}: {{description}}</li>
-{{/pages}}
+{{/cheer}}
 ````
+
+Note that you cannot provide a prefix for a single file, or a JSON or YAML string passed to `--data`.
 
 ### About specifying files
 
@@ -291,7 +293,7 @@ var options = {
 var taft = new Taft(options);
 
 // returns a Content object, which is just a String
-// that possibly has two properties:
+// that possibly has two additional properties:
 // ext - the extension the file wants to have
 // source - the path to the source file 
 
