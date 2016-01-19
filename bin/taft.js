@@ -22,16 +22,16 @@ program
     .usage('[options] <file ...>')
     .description('Render files with Handlebars')
     .option('-H, --helper <file>', 'js file that exports an object containing handlebars helpers', collect, [])
-    .option('-p, --partial <file>', 'partial (globs are ok)', collect, [])
+    .option('-p, --partial <file>', 'Handlebars partial', collect, [])
     .option('-d, --data <data>', 'JSON, YAML or INI file or data (stdin with \'-\' or \'key:-\')', collect, [])
-    .option('-t, --layout <file>', 'layout (template) file', collect, [])
+    .option('-t, --layout <file>', 'Handlebars template file', collect, [])
     .option('-y, --default-layout <name>', 'use this layout as default', String)
-    .option('-o, --output <path>', 'output file', String, '/dev/stdout')
+    .option('-o, --output <path>', 'output path', String, '/dev/stdout')
     .option('-D, --dest-dir <path>', 'output directory (mandatory if more than one file given)', String)
-    .option('-C, --cwd <path>', 'Saves files relative this directory', String)
+    .option('-C, --cwd <path>', 'save files relative this directory', String)
     .option('-e, --ext <string>', 'output file extension (default: html)', String, 'html')
-    .option('-v, --verbose', 'Output some debugging information')
-    .option('-s, --silent', "Don't output anything")
+    .option('-v, --verbose', 'output some debugging information')
+    .option('-s, --silent', "don't output anything")
     .parse(process.argv);
 
 function outFilePath(file) {
@@ -87,7 +87,6 @@ check.args(program, function(err, warn, files) {
             save(outfile, build.toString());
         }
     });
-
 });
 
 function save(file, content) {

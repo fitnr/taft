@@ -2,18 +2,15 @@
 
 Generate static html files from Handlebars files with YAML front matter.
 
-Intended as a pandoc-like tool for building a simple page, or even for generating basic static websites. Taft is lightning fast and simple to use.
+Intended as a pandoc-like tool for building a simple page, or even for generating basic static websites, Taft is lightning fast and simple to use.
+
 
 ### Installing
 
 Taft works great installed either locally or globally. If you're running a local copy, use `node_modules/.bin/taft`.
 
 ````
-npm install taft
-````
-or
-````
-npm install -g taft
+npm install [-g] taft
 ````
 
 ## command line
@@ -73,16 +70,16 @@ Taft pays special attention to some keys in a page's YAML front matter: *ext*, *
 
 ````
     -H, --helper <file>          js file that exports an object containing handlebars helpers
-    -p, --partial <file>         partial (globs are ok)
+    -p, --partial <file>         Handlebars partial
     -d, --data <data>            JSON, YAML or INI file or data (stdin with '-' or 'key:-')
-    -t, --layout <file>          layout (template) file
+    -t, --layout <file>          Handlebars template file
     -y, --default-layout <name>  use this layout as default
-    -o, --output <path>          output file
+    -o, --output <path>          output path
     -D, --dest-dir <path>        output directory (mandatory if more than one file given)
-    -C, --cwd <path>             Saves files relative this directory
+    -C, --cwd <path>             save files relative this directory
     -e, --ext <string>           output file extension (default: html)
-    -v, --verbose                Output some debugging information
-    -s, --silent                 Don't output anything
+    -v, --verbose                output some debugging information
+    -s, --silent                 don't output anything
 ````
 
 A quick run-down:
