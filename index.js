@@ -178,19 +178,25 @@ Taft.prototype.defaultLayout = function(layout) {
 };
 
 /*
-    Takes a mixed list of (1) files, (2) js objects, (3) JSON, (4) YAML, (5) INI
+    Takes a mixed list of files, globs, js objects, JSON, YAML, INI
+    globs may optionally be prefixed (prefix:data/*.yaml) to direct the data into a so-named Array
+    The pseudo-file /dev/stdin may also be prefixed to place it into an object
 */
 Taft.prototype.data = function() {
     if (arguments.length === 0) return this._data;
 
-    var data = Array.prototype.concat.apply([], Array.prototype.slice.call(arguments));
-
+    // argument may be a file, a glob, or an object
     var parseExtend = function(argument) {
         var r = parser.parse(argument);
+
+        if (Object.keys(r).length === 0)
+            this.stderr("Could not read any data from " + argument);
+
         merge(this._data, r);
     };
 
-    mergeGlob(data).forEach(parseExtend.bind(this));
+    Array.prototype.concat.apply([], Array.prototype.slice.call(arguments))
+        .forEach(parseExtend.bind(this));
 
     return this;
 };

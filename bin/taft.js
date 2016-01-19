@@ -54,8 +54,7 @@ function replaceExt(file, ext) {
 var options = {
     layouts: program.layout || undefined,
     partials: program.partial || undefined,
-    // process prefixed data
-    data: program.data ? Args.prefix(program.data) : undefined,
+    data: program.data || undefined,
     helpers: program.helper || undefined,
     verbose: program.verbose || false,
     silent: program.silent || false,
