@@ -15,23 +15,23 @@ var options = {
     verbose: 0
 };
 
-describe('Taft creating templates', function(){
+describe('Taft template object', function(){
 
     before(function(){
         this.T = taft(options);
         this.fixture = fs.readFileSync(__dirname + '/fixtures/index.html', {encoding: 'utf-8'});
     });
 
-    it('should be a template object', function(){
+    it('exists', function(){
         this.result = this.T.build(__dirname + '/pages/test.handlebars');
         this.T._createTemplate(__dirname + '/pages/test.handlebars');
     });
 
-    it('template object should have data getter', function(){
+    it('has data getter', function(){
         this.T._templates[__dirname + '/pages/test.handlebars'].data.a.should.equal(2);
     });
 
-    it('should have a template object named ' + __dirname + '/pages/test.handlebars', function(){
+    it('is named ' + __dirname + '/pages/test.handlebars', function(){
         this.T._templates.should.have.a.property(path.resolve(__dirname + '/pages/test.handlebars'));
 
         it('should be an instance of template', function(){

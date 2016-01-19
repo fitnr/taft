@@ -14,12 +14,12 @@ describe('taft options', function(){
         this.U = taft(options);
     });
 
-    it('should silent and verbose defaults', function(){
+    it('silent and verbose defaults', function(){
         this.U.silent.should.be.False;
         this.U.verbose.should.be.False;
     });
 
-    it('should have default layout', function(){
+    it('default layout', function(){
         this.U._defaultLayout.should.equal('basic.hbs');
     });
 
@@ -32,19 +32,19 @@ describe('Taft chaining', function(){
         });
     });
 
-    it('Should chain', function(){
+    it('works', function(){
         this.T2.helpers([]).should.be.instanceOf(taft);
         this.T2.partials([]).should.be.instanceOf(taft);
         this.T2.data({a: 1}).should.be.instanceOf(taft);
         this.T2.layouts([]).should.be.instanceOf(taft);
     });
 
-    it('defaultLayout should work', function(){
+    it('works with defaultLayout', function(){
         this.T2.defaultLayout('default.html').should.be.instanceOf(taft);
         this.T2._defaultLayout.should.equal('default.html');
     });
 
-    it('Should return contents when arguments are empty', function(){
+    it('returns contents when arguments are empty', function(){
         this.T2.helpers().should.be.instanceOf(Array);
         this.T2.helpers().should.containDeep(['each']);
 

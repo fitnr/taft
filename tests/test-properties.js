@@ -4,7 +4,7 @@ var should = require('should');
 var taft = require('..');
 
 describe('Taft properties', function(){
-    it('have data', function(){
+    it('include "data"', function(){
         taft.prototype.should.have.ownProperty('data', 'have data');
     });
 
@@ -18,13 +18,13 @@ describe('Taft properties', function(){
         verbose: true
     });
 
-    it('instance of itself', function(){
+    it('are complete', function(){
         T.should.be.instanceOf(taft)
             .and.have.properties(['verbose', 'silent', '_knownHelpers', '_data', '_options',
                 '_templates', '_layouts']);
     });
 
-    it('speak when spoken to', function(){
+    it('speaks when spoken to', function(){
         T.silent.should.be.False;
         T.verbose.should.be.True;
     });
@@ -44,15 +44,11 @@ describe('Taft functions', function(){
 
     T = taft(options);
 
-    if('should be instance of Taft', function(){
-        T.should.be.instanceOf(taft);
-    });
-
-    it('should accept data', function(){
+    it('accept data', function(){
         T == T.data([__dirname + '/data/json.json', __dirname + '/data/yaml.yaml']);
     });
 
-    it('have _applyLayout function', function(){
+    it('include _applyLayout', function(){
         T._applyLayout.should.be.function;
     });
 

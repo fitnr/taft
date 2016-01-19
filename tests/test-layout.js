@@ -37,11 +37,11 @@ describe('When layout equals the file', function(){
         this.fixture = fs.readFileSync(__dirname + '/fixtures/no-layout.html', {encoding: 'utf-8'});
     });
 
-    it("has defaultLayout equal to the fixture", function(){
+    it("defaultLayout equals the fixture", function(){
         this.taft.defaultLayout().should.equal('test.handlebars');
     });
 
-    it("ignore the layout", function(){
+    it("taft ignores the layout", function(){
         this.taft.build(__dirname + '/pages/test.handlebars').toString().should.equal(this.fixture);
     });
 

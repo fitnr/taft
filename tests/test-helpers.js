@@ -6,7 +6,7 @@ var Handlebars = require('handlebars');
 
 describe('taft helpers', function(){
 
-    it('should have registered helpers', function(){
+    it('register', function(){
         W = new taft({
             defaultLayout: 'basic',
             helpers: ['tests/helpers/cow-helper.js'],
@@ -16,7 +16,7 @@ describe('taft helpers', function(){
         W._knownHelpers.should.containEql('cow');
     });
 
-    it('should register a helper string', function() {
+    it('register a helper string', function() {
         S = new taft({
             helpers: 'tests/helpers/other-helpers.js',
         });

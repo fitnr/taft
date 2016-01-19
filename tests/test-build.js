@@ -25,25 +25,25 @@ describe('Taft building with layout', function(){
         this.fixture = fs.readFileSync(__dirname + '/fixtures/index.html', {encoding: 'utf-8'});
     });
 
-    it('should have the default layout', function(){
+    it('has the default layout', function(){
         this.T.layouts(__dirname + '/layouts/default.html');
         this.T._layouts.should.have.property('default.html');
     });
 
-    it('should have the defaultLayout', function(){
+    it('has the defaultLayout', function(){
         this.T._defaultLayout.should.equal('default.html');
     });
 
-    it('should match fixture', function(){
+    it('matches fixture', function(){
         result = ""+this.T.build(__dirname + '/pages/test.handlebars');
         result.should.equal(this.fixture);
     });
 
-    it('should have a layout function', function(){
+    it('has a layout function', function(){
         this.T._layouts['default.html'].should.be.a.function;
     });
 
-    it('should have a template function with some properties', function(){
+    it('has a template function with some properties', function(){
         this.T._templates[__dirname + '/pages/test.handlebars'].should.have.a.property('compile');
         this.T._templates[__dirname + '/pages/test.handlebars'].should.have.a.property('build');
         this.T._templates[__dirname + '/pages/test.handlebars'].should.have.a.property('layout');

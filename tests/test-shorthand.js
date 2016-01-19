@@ -24,7 +24,7 @@ describe('Taft shorthand', function() {
         this.fixture = fs.readFileSync(__dirname + '/fixtures/index.html', {encoding: 'utf-8'});
     });
 
-    it('should match fixture', function(){
+    it('matches fixture', function(){
         this.result.should.equal(this.fixture);
     });
 
