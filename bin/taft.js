@@ -50,19 +50,8 @@ function replaceExt(file, ext) {
     return file.slice(0, -path.extname(file).length) + '.' + ext;
 }
 
-// setup options
-var options = {
-    layouts: program.layout || undefined,
-    partials: program.partial || undefined,
-    data: program.data,
-    helpers: program.helper || undefined,
-    verbose: program.verbose || false,
-    silent: program.silent || false,
-    defaultLayout: program.defaultLayout || undefined,
-};
-
-// process files and possibly toss errors
-check.args(program, function(err, warn, files) {
+function render(err, warn, files) {
+    // process files and possibly toss errors
     if (err || warn) {
         console.error(err + warn);
         if (err) process.exit(1);
@@ -86,13 +75,13 @@ check.args(program, function(err, warn, files) {
 
         if (build) {
             outfile = (outfile === '/dev/stdout') ? outfile : replaceExt(outfile, build.ext || ext);
-
             save(outfile, build.toString());
         }
     });
-});
+}
 
 function save(file, content) {
+    // Save files, create folders
     mkdirp(path.dirname(file), function(e) {
 
         if (e) return console.error(e);
@@ -109,3 +98,16 @@ function save(file, content) {
         });
     });
 }
+
+// setup options
+var options = {
+    layouts: program.layout || undefined,
+    partials: program.partial || undefined,
+    data: program.data,
+    helpers: program.helper || undefined,
+    verbose: program.verbose || false,
+    silent: program.silent || false,
+    defaultLayout: program.defaultLayout || undefined,
+};
+
+check.args(program, render);
