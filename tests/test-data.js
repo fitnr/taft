@@ -2,7 +2,7 @@
 
 var should = require('should');
 var fs = require('fs');
-var taft = require('..');
+var Taft = require('..');
 var Handlebars = require('handlebars');
 
 var options = {
@@ -14,16 +14,17 @@ var options = {
         {"a": 2},
         '{"bees": "bees"}',
     ],
+    silent: true,
     handlebars: Handlebars
 };
 
 describe('Taft data', function(){
     before(function(){
-        this.T = taft(options);
+        this.T = Taft(options);
         Handlebars.unregisterHelper('foo');
     });
 
-    it('should read ini, json, yaml', function() {
+    it('reads ini, json, yaml', function() {
         this.T._data.should.have.property('ini');
         this.T._data.should.have.property('yaml');
         this.T._data.should.have.property('json');
@@ -33,13 +34,20 @@ describe('Taft data', function(){
         this.T._data.json.cat.should.equal('meow');
     });
 
-    it('should parse a javascript object', function(){
+    it('parses a javascript object', function(){
         this.T._data.test.should.equal(true);
     });
 
-    it('should produce pages with that data that match fixtures/index-data.html', function() {
+    it('produces pages with that data that match fixtures/index-data.html', function() {
         fixture = fs.readFileSync(__dirname + '/fixtures/index-data.html', {encoding: 'utf-8'});
         result = ""+this.T.build(__dirname + '/pages/test.handlebars');
         result.should.equal(fixture);
+    });
+
+    it('accepts a prefix on a glob', function() {
+        var fixture = fs.readFileSync(__dirname + '/fixtures/prefixed-list.txt', {encoding: 'utf-8'});
+        var result = Taft({silent: true, data: 'cats:tests/data/*'})
+            .build("tests/pages/prefix-list.handlebars");
+        result.toString().should.equal(fixture);
     });
 });

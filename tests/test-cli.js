@@ -62,7 +62,7 @@ describe('Taft cli', function(){
 
     it('accepts prefixed data glob as list', function(done) {
         var fixture = fs.readFileSync(__dirname + '/fixtures/prefixed-list.txt', {encoding: 'utf-8'});
-        var args = " --output tmp.html --silent --data 'foo:tests/data/*' tests/pages/foo-list.handlebars";
+        var args = " --output tmp.html --silent --data 'cats:tests/data/*' tests/pages/prefix-list.handlebars";
 
         child.exec(command + args, function (e, result, error) {
             var read = fs.readFileSync('tmp.html', {encoding: 'utf-8'});
