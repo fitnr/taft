@@ -9,7 +9,7 @@ var path = require('path'),
     mkdirp = require('mkdirp'),
     program = require('commander');
  
-var Args = require('../lib/process-args'),
+var check = require('../lib/check'),
     Taft = require('..');
 
 function collect(val, memo) {
@@ -62,7 +62,7 @@ var options = {
 };
 
 // process files and possibly toss errors
-Args.process(program, function(err, warn, files) {
+check.args(program, function(err, warn, files) {
     if (err || warn) {
         console.error(err + warn);
         if (err) process.exit(1);

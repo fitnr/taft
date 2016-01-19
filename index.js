@@ -8,7 +8,7 @@ var fs = require('rw'),
     merge = require('merge'),
     // HH = require('handlebars-helpers'),
     Template = require('./lib/template'),
-    parser = require('./lib/parser'),
+    Data = require('./lib/data'),
     YFM = require('yfm');
 
 function mergeGlob(list) {
@@ -187,7 +187,7 @@ Taft.prototype.data = function() {
 
     // argument may be a file, a glob, or an object
     var parseExtend = function(argument) {
-        var r = parser.parse(argument);
+        var r = Data.parse(argument);
         var keys = Object.keys(r);
 
         if (keys.length === 0)
