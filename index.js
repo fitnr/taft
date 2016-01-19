@@ -79,7 +79,7 @@ Taft.prototype.layouts = function() {
 
     mergeGlob(layouts).forEach((function(layout) {
         var name = path.basename(layout);
-        this.debug('Adding layout ' + name);
+        this.debug('adding layout ' + name);
         this._layouts[name] = this._createTemplate(layout);
     }).bind(this));
 
@@ -90,7 +90,7 @@ Taft.prototype.layouts = function() {
         this._defaultLayout = path.basename(this._options.defaultLayout);
 
     if (this._defaultLayout)
-        this.debug('Set default layout to ' + this._defaultLayout);
+        this.debug('set default layout to ' + this._defaultLayout);
 
     return this;
 };
@@ -114,7 +114,7 @@ Taft.prototype._applyLayout = function(name, content, pageData) {
     } catch (e) {
         this.debug(e);
         throw {
-            message:'Unable to render page: ' + e.message
+            message: 'unable to render page: ' + e.message
         };
 
     } finally {
@@ -138,7 +138,7 @@ Taft.prototype._createTemplate = function(file, options) {
 
     // If YFM has layout: null or layout: false, don't assign a layout
     if (context.hasOwnProperty('layout') && !context.layout)
-        this.debug('Not using layout');
+        this.debug('not using layout');
     else
         templateOptions.layout = context.layout || this._defaultLayout;
 
@@ -147,7 +147,7 @@ Taft.prototype._createTemplate = function(file, options) {
     // if file is default.hbs, layout can't be default.hbs
     if (templateOptions.layout === path.basename(file)) {
         delete templateOptions.layout;
-        this.debug("Ignoring layout for " + file + ", since it seems to be itself.");
+        this.debug("ignoring layout for " + file + ", since it seems to be itself");
     }
 
     // class data extended by current context
@@ -159,7 +159,7 @@ Taft.prototype._createTemplate = function(file, options) {
  * Creates a template named (path.resolve(file))
  */
 Taft.prototype.template = function(file) {
-    this.debug('Parsing ' + file);
+    this.debug('parsing ' + file);
     this._templates[path.resolve(file)] = this._createTemplate(file);
 
     return this;
@@ -188,9 +188,14 @@ Taft.prototype.data = function() {
     // argument may be a file, a glob, or an object
     var parseExtend = function(argument) {
         var r = parser.parse(argument);
+        var keys = Object.keys(r);
 
-        if (Object.keys(r).length === 0)
-            this.stderr("Could not read any data from " + argument);
+        if (keys.length === 0)
+            this.stderr("could not read any data from " + argument);
+        else if (keys.length === 1)
+            this.debug("parsed " + keys[0]);
+        else
+            this.debug("parsed an object");
 
         merge(this._data, r);
     };
@@ -208,7 +213,7 @@ Taft.prototype.build = function(file, data) {
 
     // Ignore page when published === false
     if (tpl.data.published === false || tpl.data.published === 0) {
-        this.debug('ignoring: ' + file);
+        this.debug('ignoring ' + file);
         return;
     }
 
@@ -258,7 +263,7 @@ Taft.prototype.helpers = function() {
                     try {
                         module.register(this.Handlebars, this._options, {});    
                     } catch (err) {
-                        this.debug("Register function err for " + h);
+                        this.debug("register function err for " + h);
                     }
 
                 else if (typeof(module) === 'function')

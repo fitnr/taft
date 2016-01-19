@@ -92,10 +92,10 @@ describe('Taft cli', function(){
             error.should.not.equal('');
 
             error.indexOf('registered helpers').should.be.above(-1);
-            error.indexOf('Adding layout').should.be.above(-1);
+            error.indexOf('adding layout').should.be.above(-1);
             error.indexOf('registered partials').should.be.above(-1);
-            error.indexOf('Set default layout').should.be.above(-1);
-            error.indexOf('Parsing').should.be.above(-1);
+            error.indexOf('set default layout').should.be.above(-1);
+            error.indexOf('parsing').should.be.above(-1);
             error.indexOf('building').should.be.above(-1);
 
             done();
