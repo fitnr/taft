@@ -261,7 +261,7 @@ If might be used like this:
 
 Note that you cannot provide a prefix for a single file, or a JSON or YAML string passed to `--data`.
 
-## Environment variables
+## Environment variables and globals
 
 The `taft` command line tool adds your environment variables to a variable called ENV.
 ```handlebars
@@ -275,6 +275,17 @@ DEVELOPMENT=1 taft source/page.hbs
 # Won't print the PATH
 DEVELOPMENT= taft source/page.hbs
 ```
+
+The command line tool also adds some useful values to a `TAFT` global. The first three are the same for every page per run, the last is per-page:
+
+````javascript
+TAFT: {
+    cwd: 'tests',           // --cwd value
+    destDir: 'output',      // --dest-dir value 
+    ext: 'html',            // --ext value
+    file: 'pages/test.html' // output file path (not including destDir)
+}
+````
 
 ### About specifying files
 

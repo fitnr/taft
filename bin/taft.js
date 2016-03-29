@@ -60,8 +60,13 @@ function render(err, warn, files) {
     // use output extname if given
     program.ext = path.extname(program.output) || program.ext;
 
-    // remove . from extension
-    var ext = (program.ext.slice(0, 1) === '.') ? program.ext.slice(1) : program.ext;
+    // create TAFT global 
+    var TAFT = {
+        cwd: program.cwd,
+        destDir: program.destDir,
+        // remove . from extension
+        ext: (program.ext.slice(0, 1) === '.') ? program.ext.slice(1) : program.ext,
+    };
 
     // Add environment variables
     options.data.push({ENV: process.env});
@@ -71,10 +76,13 @@ function render(err, warn, files) {
 
     files.forEach(function(file) {
         var outfile = outFilePath(file),
-            build = taft.build(file);
+            build;
+        
+        TAFT.file = (program.cwd) ? path.relative(program.cwd, file) : file;
+        build = taft.build(file, {'TAFT': TAFT});
 
         if (build) {
-            outfile = (outfile === '/dev/stdout') ? outfile : replaceExt(outfile, build.ext || ext);
+            outfile = (outfile === '/dev/stdout') ? outfile : replaceExt(outfile, build.ext || TAFT.ext);
             save(outfile, build.toString());
         }
     });
