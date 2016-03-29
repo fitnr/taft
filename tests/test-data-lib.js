@@ -54,7 +54,7 @@ describe('data lib', function(){
 
     it('readFile understands YAML and YFM', function(){
         readFile(__dirname + '/data/yaml.yaml').should.deepEqual(catsAndDogs, 'reads YAML');
-        var foo = readFile(__dirname + '/pages/foo.handlebars');
+        var foo = readFile(__dirname + '/pages/foo.html');
         foo.data.should.equal("Big Lub", 'reads YFM');
         foo.candy.should.equal("a variable from the page");
     });

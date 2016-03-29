@@ -40,14 +40,14 @@ describe('Taft data', function(){
 
     it('produces pages with that data that match fixtures/index-data.html', function() {
         fixture = fs.readFileSync(__dirname + '/fixtures/index-data.html', {encoding: 'utf-8'});
-        result = ""+this.T.build(__dirname + '/pages/test.handlebars');
+        result = ""+this.T.build(__dirname + '/pages/test.html');
         result.should.equal(fixture);
     });
 
     it('accepts a prefix on a glob', function() {
         var fixture = fs.readFileSync(__dirname + '/fixtures/prefixed-list.txt', {encoding: 'utf-8'});
         var result = Taft({silent: true, data: 'cats:tests/data/*'})
-            .build("tests/pages/prefix-list.handlebars");
+            .build("tests/pages/prefix-list.html");
         result.toString().should.equal(fixture);
     });
 });

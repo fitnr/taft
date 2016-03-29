@@ -23,16 +23,16 @@ describe('Taft template object', function(){
     });
 
     it('exists', function(){
-        this.result = this.T.build(__dirname + '/pages/test.handlebars');
-        this.T._createTemplate(__dirname + '/pages/test.handlebars');
+        this.result = this.T.build(__dirname + '/pages/test.html');
+        this.T._createTemplate(__dirname + '/pages/test.html');
     });
 
     it('has data getter', function(){
-        this.T._templates[__dirname + '/pages/test.handlebars'].data.a.should.equal(2);
+        this.T._templates[__dirname + '/pages/test.html'].data.a.should.equal(2);
     });
 
-    it('is named ' + __dirname + '/pages/test.handlebars', function(){
-        this.T._templates.should.have.a.property(path.resolve(__dirname + '/pages/test.handlebars'));
+    it('is named ' + __dirname + '/pages/test.html', function(){
+        this.T._templates.should.have.a.property(path.resolve(__dirname + '/pages/test.html'));
 
         it('should be an instance of template', function(){
             this.T._templates.test.should.be.instanceof(Template);

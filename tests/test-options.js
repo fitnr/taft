@@ -28,7 +28,7 @@ describe('taft options', function(){
 describe('Taft chaining', function(){
     before(function(){
         this.T2 = new taft({
-            layouts: [__dirname + '/layouts/default.html', __dirname + '/partials/partial.html']
+            layouts: [__dirname + '/layouts/default.handlebars', __dirname + '/partials/partial.handlebars']
         });
     });
 
@@ -40,8 +40,8 @@ describe('Taft chaining', function(){
     });
 
     it('works with defaultLayout', function(){
-        this.T2.defaultLayout('default.html').should.be.instanceOf(taft);
-        this.T2._defaultLayout.should.equal('default.html');
+        this.T2.defaultLayout('default.handlebars').should.be.instanceOf(taft);
+        this.T2._defaultLayout.should.equal('default.handlebars');
     });
 
     it('returns contents when arguments are empty', function(){
@@ -57,7 +57,7 @@ describe('Taft chaining', function(){
         this.T2.data().b.should.equal(2);
 
         this.T2.layouts().should.be.instanceOf(Array);
-        should.deepEqual(this.T2.layouts(), ['default.html', 'partial.html']);
+        should.deepEqual(this.T2.layouts(), ['default.handlebars', 'partial.handlebars']);
     });
 
 });

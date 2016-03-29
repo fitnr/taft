@@ -4,14 +4,14 @@ var Taft = require('..');
 
 var options = {
     helpers: require('./helpers/helper.js'),
-    partials: [__dirname + '/partials/partial.html'],
+    partials: [__dirname + '/partials/partial.handlebars'],
     data: [
         {a: 2},
         '{"bees": "bees"}',
         __dirname + '/data/json.json',
         __dirname + '/data/yaml.yaml'
     ],
-    layouts: [__dirname + '/layouts/default.html'],
+    layouts: [__dirname + '/layouts/default.handlebars'],
     verbose: 0,
     silent: 1,
 };
@@ -19,7 +19,7 @@ var options = {
 describe('Taft shorthand', function() {
 
     before(function(){
-        this.result = Taft.taft(__dirname + '/pages/test.handlebars', options);
+        this.result = Taft.taft(__dirname + '/pages/test.html', options);
 
         this.fixture = fs.readFileSync(__dirname + '/fixtures/index.html', {encoding: 'utf-8'});
     });

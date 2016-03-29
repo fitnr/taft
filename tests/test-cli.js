@@ -13,9 +13,9 @@ const execArgs = [
         '--data', '\'{"bees": "bees"}\'',
         '--data', 'tests/data/yaml.yaml',
         '--data', 'tests/data/json.json',
-        '--layout', "tests/layouts/*.html",
-        '--partial', "tests/partials/*.html",
-        'tests/pages/test.handlebars'
+        '--layout', "tests/layouts/*",
+        '--partial', "tests/partials/*",
+        'tests/pages/test.html'
     ];
 const spawnArgs = [
         '--verbose',
@@ -24,9 +24,9 @@ const spawnArgs = [
         '--data', '{"bees": "bees"}',
         '--data', 'tests/data/yaml.yaml',
         '--data', 'tests/data/json.json',
-        '--layout', "tests/layouts/*.html",
-        '--partial', "tests/partials/*.html",
-        'tests/pages/test.handlebars',
+        '--layout', "tests/layouts/*.handlebars",
+        '--partial', "tests/partials/*.handlebars",
+        'tests/pages/test.html',
         '--output', 'tmp.html'
     ];
 
@@ -62,7 +62,7 @@ describe('Taft cli', function(){
 
     it('accepts prefixed data glob as list', function(done) {
         var fixture = fs.readFileSync(__dirname + '/fixtures/prefixed-list.txt', {encoding: 'utf-8'});
-        var args = " --output tmp.html --silent --data 'cats:tests/data/*' tests/pages/prefix-list.handlebars";
+        var args = " --output tmp.html --silent --data 'cats:tests/data/*' tests/pages/prefix-list.html";
 
         child.exec(command + args, function (e, result, error) {
             var read = fs.readFileSync('tmp.html', {encoding: 'utf-8'});
@@ -108,7 +108,7 @@ describe('Taft cli', function(){
             '--data', 'tests/data/yaml.yaml',
             '--data', 'tests/data/ini.ini',
             '-H', "tests/helpers/helper.js",
-            'tests/pages/test.handlebars',
+            'tests/pages/test.html',
             '--output', 'tmp.html'
         ];
         const fixture = fs.readFileSync(__dirname + '/fixtures/fixtures-data.html', {encoding: 'utf-8'});
@@ -136,7 +136,7 @@ describe('Taft cli', function(){
             '--data', 'yaml:/dev/stdin',
             '--data', 'tests/data/ini.ini',
             '-H', "tests/helpers/helper.js",
-            'tests/pages/test.handlebars',
+            'tests/pages/test.html',
             '-v',
             '--output', 'tmp.html'
         ];

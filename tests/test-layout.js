@@ -4,7 +4,7 @@ var Taft = require('..');
 
 var options = {
     helpers: require('./helpers/helper.js'),
-    partials: [__dirname + '/partials/partial.html'],
+    partials: [__dirname + '/partials/partial.handlebars'],
     data: [
         {a: 2},
         '{"bees": "bees"}',
@@ -13,7 +13,7 @@ var options = {
     ],
     verbose: 0,
     silent: 1,
-    layouts: [__dirname + '/layouts/default.html']
+    layouts: [__dirname + '/layouts/default.handlebars']
 };
 
 describe('When layout is false', function(){
@@ -24,25 +24,25 @@ describe('When layout is false', function(){
     });
 
     it("ignore the default layout", function(){
-        this.taft.build(__dirname + '/pages/no-layout.handlebars').toString().should.equal(this.fixture);
+        this.taft.build(__dirname + '/pages/no-layout.html').toString().should.equal(this.fixture);
     });
 });
 
 describe('When layout equals the file', function(){
 
     before(function(){
-        options.layouts = [__dirname + '/pages/test.handlebars'];
+        options.layouts = [__dirname + '/pages/test.html'];
         options.verbose = 1;
         this.taft = new Taft(options);
         this.fixture = fs.readFileSync(__dirname + '/fixtures/no-layout.html', {encoding: 'utf-8'});
     });
 
     it("defaultLayout equals the fixture", function(){
-        this.taft.defaultLayout().should.equal('test.handlebars');
+        this.taft.defaultLayout().should.equal('test.html');
     });
 
     it("taft ignores the layout", function(){
-        this.taft.build(__dirname + '/pages/test.handlebars').toString().should.equal(this.fixture);
+        this.taft.build(__dirname + '/pages/test.html').toString().should.equal(this.fixture);
     });
 
 });

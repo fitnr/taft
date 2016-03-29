@@ -7,7 +7,7 @@ var Template = require('../lib/template.js');
 
 var options = {
     helpers: require('./helpers/helper.js'),
-    partials: [__dirname + '/partials/partial.html'],
+    partials: [__dirname + '/partials/partial.handlebars'],
     data: [
         {a: 2},
         '{"bees": "bees"}',
@@ -26,27 +26,27 @@ describe('Taft building with layout', function(){
     });
 
     it('has the default layout', function(){
-        this.T.layouts(__dirname + '/layouts/default.html');
-        this.T._layouts.should.have.property('default.html');
+        this.T.layouts(__dirname + '/layouts/default.handlebars');
+        this.T._layouts.should.have.property('default.handlebars');
     });
 
     it('has the defaultLayout', function(){
-        this.T._defaultLayout.should.equal('default.html');
+        this.T._defaultLayout.should.equal('default.handlebars');
     });
 
     it('matches fixture', function(){
-        result = ""+this.T.build(__dirname + '/pages/test.handlebars');
+        result = ""+this.T.build(__dirname + '/pages/test.html');
         result.should.equal(this.fixture);
     });
 
     it('has a layout function', function(){
-        this.T._layouts['default.html'].should.be.a.function;
+        this.T._layouts['default.handlebars'].should.be.a.function;
     });
 
     it('has a template function with some properties', function(){
-        this.T._templates[__dirname + '/pages/test.handlebars'].should.have.a.property('compile');
-        this.T._templates[__dirname + '/pages/test.handlebars'].should.have.a.property('build');
-        this.T._templates[__dirname + '/pages/test.handlebars'].should.have.a.property('layout');
+        this.T._templates[__dirname + '/pages/test.html'].should.have.a.property('compile');
+        this.T._templates[__dirname + '/pages/test.html'].should.have.a.property('build');
+        this.T._templates[__dirname + '/pages/test.html'].should.have.a.property('layout');
     });
 
 });
