@@ -11,7 +11,8 @@ var readStdin = datalib.__get__('readStdin');
 
 var catsAndDogs = {
     cat: "meow",
-    dog: "woof"
+    dog: "woof",
+    emoji: "🖥",
 };
 
 describe('data lib', function(){

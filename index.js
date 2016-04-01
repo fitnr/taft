@@ -9,7 +9,6 @@ var fs = require('rw'),
     // HH = require('handlebars-helpers'),
     Template = require('./lib/template'),
     Data = require('./lib/data'),
-    YFM = require('yfm');
 
 function mergeGlob(list) {
     if (!Array.isArray(list)) list = [list];
@@ -25,6 +24,7 @@ function mergeGlob(list) {
 
     return list.filter(function(e, pos) { return list.indexOf(e) === pos; });
 }
+    gm = require('gray-matter');
 
 function taft(file, options) {
     return new Taft(options)
@@ -125,8 +125,8 @@ Taft.prototype._applyLayout = function(name, content, pageData) {
  * returns a template object named (path.resolve(file))
  */
 Taft.prototype._createTemplate = function(file, options) {
-    var source = YFM.read(file),
-        context = source.context || {},
+    var source = gm.read(file),
+        context = source.data || {},
         content = source.content || '';
 
     var templateOptions = {
@@ -134,7 +134,7 @@ Taft.prototype._createTemplate = function(file, options) {
         helpers: this._helpers
     };
 
-    // If YFM has layout: null or layout: false, don't assign a layout
+    // If yaml front matter has layout: null or layout: false, don't assign a layout
     if (context.hasOwnProperty('layout') && !context.layout)
         this.debug('not using layout');
     else
