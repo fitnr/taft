@@ -61,10 +61,11 @@ Taft.prototype.layouts = function() {
     var layouts = Array.prototype.concat.apply([], Array.prototype.slice.call(arguments));
 
     mergeGlob(layouts).forEach((function(layout) {
+    mergeGlob(layouts).forEach(function(layout) {
         var name = path.basename(layout);
         this.debug('adding layout ' + name);
         this._layouts[name] = this._createTemplate(layout);
-    }).bind(this));
+    }, this);
 
     // as a convenience, when there's only one layout, that will be the default
     if (Object.keys(this._layouts).length === 1)
@@ -182,7 +183,7 @@ Taft.prototype.data = function() {
     };
 
     Array.prototype.concat.apply([], Array.prototype.slice.call(arguments))
-        .forEach(parseExtend.bind(this));
+        .forEach(parseExtend, this);
 
     return this;
 };
@@ -221,7 +222,7 @@ Taft.prototype.helpers = function() {
     var helpers = Array.prototype.concat.apply([], Array.prototype.slice.call(arguments));
     var current = Object.keys(this.Handlebars.helpers);
 
-    mergeGlob(helpers).forEach((function(h) {
+    mergeGlob(helpers).forEach(function(h) {
         var module;
 
         try {
@@ -271,7 +272,7 @@ Taft.prototype.helpers = function() {
             this.stderr("Error registering helper '" + h + "'");
             this.stderr(err);
         }
-    }).bind(this));
+    }, this);
 
     // return new helpers
     var registered = Object.keys(this.Handlebars.helpers).filter(function(e) {
@@ -292,7 +293,7 @@ Taft.prototype.partials = function() {
 
     var registered = [];
 
-    mergeGlob(partials).forEach((function(partial) {
+    mergeGlob(partials).forEach(function(partial) {
         if (typeof(partial) === 'object') {
 
             for (var name in partial) {
@@ -314,7 +315,7 @@ Taft.prototype.partials = function() {
             }
         }
 
-    }).bind(this));
+    }, this);
 
     if (registered.length) this.debug('registered partials: ' + registered.join(', '));
 
