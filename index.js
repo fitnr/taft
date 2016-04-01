@@ -60,7 +60,7 @@ Taft.prototype.layouts = function() {
     // populate _layoutNames object
     var layoutFileNames = mergeGlob(layouts);
 
-    layoutFileNames.forEach(function(x) { this._layoutNames[path.basename(x)] = x; }, this)
+    layoutFileNames.forEach(x => this._layoutNames[path.basename(x)] = x);
 
     this.debug('found layouts: ' + Object.keys(this._layoutNames).join(', '));
 
@@ -236,7 +236,7 @@ Taft.prototype.helpers = function() {
     var helpers = Array.prototype.concat.apply([], Array.prototype.slice.call(arguments));
     var current = Object.keys(this.Handlebars.helpers);
 
-    mergeGlob(helpers).forEach(function(h) {
+    mergeGlob(helpers).forEach(h => {
         var module;
 
         try {
@@ -286,12 +286,11 @@ Taft.prototype.helpers = function() {
             this.stderr("Error registering helper '" + h + "'");
             this.stderr(err);
         }
-    }, this);
+    });
 
     // return new helpers
-    var registered = Object.keys(this.Handlebars.helpers).filter(function(e) {
-        return current.indexOf(e) === -1;
-    });
+    var registered = Object.keys(this.Handlebars.helpers)
+        .filter(e => current.indexOf(e) === -1);
 
     if (registered.length) this.debug('registered helpers: ' + registered.join(', '));
 
@@ -304,10 +303,9 @@ Taft.prototype.partials = function() {
     if (arguments.length === 0) return Object.keys(this.Handlebars.partials);
 
     var partials = Array.prototype.concat.apply([], Array.prototype.slice.call(arguments));
-
     var registered = [];
 
-    mergeGlob(partials).forEach(function(partial) {
+    mergeGlob(partials).forEach(partial => {
         if (typeof(partial) === 'object') {
 
             for (var name in partial) {
@@ -318,7 +316,6 @@ Taft.prototype.partials = function() {
             }
 
         } else {
-
             var p = path.basename(partial, path.extname(partial));
 
             try {
@@ -329,7 +326,7 @@ Taft.prototype.partials = function() {
             }
         }
 
-    }, this);
+    });
 
     if (registered.length) this.debug('registered partials: ' + registered.join(', '));
 
