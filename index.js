@@ -1,29 +1,12 @@
 #!/usr/bin/env node
-
 'use strict';
 
 var fs = require('rw'),
-    glob = require('glob'),
     path = require('path'),
     merge = require('merge'),
-    // HH = require('handlebars-helpers'),
+    mergeGlob = require('./lib/merge-glob'),
     Template = require('./lib/template'),
     Data = require('./lib/data'),
-
-function mergeGlob(list) {
-    if (!Array.isArray(list)) list = [list];
-    list = list.map(function(item) {
-        try {
-            var globbed = glob.sync(item);
-            return globbed.length ? globbed : item;
-        } catch (err) {
-            return item;
-        }
-    });
-    list = Array.prototype.concat.apply([], list);
-
-    return list.filter(function(e, pos) { return list.indexOf(e) === pos; });
-}
     gm = require('gray-matter');
 
 function taft(file, options) {
