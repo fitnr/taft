@@ -63,7 +63,7 @@ function Taft(options) {
 Taft.prototype.layouts = function() {
     if (arguments.length === 0) return Object.keys(this._layoutNames);
 
-    var layouts = Array.prototype.concat.apply([], Array.prototype.slice.call(arguments));
+    var layouts = flatten(arguments);
 
     // populate _layoutNames object
     var layoutFileNames = mergeGlob(layouts);
@@ -211,8 +211,7 @@ Taft.prototype.data = function() {
         merge(this._data, r);
     };
 
-    Array.prototype.concat.apply([], Array.prototype.slice.call(arguments))
-        .forEach(parseExtend, this);
+    flatten(arguments).forEach(parseExtend, this);
 
     return this;
 };
@@ -246,8 +245,8 @@ Taft.prototype.build = function(file, data) {
 Taft.prototype.helpers = function() {
     if (arguments.length === 0) return Object.keys(this.Handlebars.helpers);
 
-    var helpers = Array.prototype.concat.apply([], Array.prototype.slice.call(arguments));
-    var current = Object.keys(this.Handlebars.helpers);
+    var helpers = flatten(arguments);
+    var current = new Set(Object.keys(this.Handlebars.helpers));
 
     mergeGlob(helpers).forEach(h => {
         var module;
@@ -279,7 +278,7 @@ Taft.prototype.helpers = function() {
                     try {
                         this.Handlebars.registerHelper(module());
                         
-                        if (Object.keys(this.Handlebars.helpers).length === current.length)
+                        if (Object.keys(this.Handlebars.helpers).length === current.size)
                             throw new Error("Registering by passing function in " + h + " didn't work. Trying another way");
 
                     } catch (err) {
@@ -302,12 +301,11 @@ Taft.prototype.helpers = function() {
     });
 
     // return new helpers
-    var registered = Object.keys(this.Handlebars.helpers)
-        .filter(e => current.indexOf(e) === -1);
+    var registered = Object.keys(this.Handlebars.helpers).filter(e => !current.has(e));
 
     if (registered.length) this.debug('registered helpers: ' + registered.join(', '));
 
-    this._knownHelpers = Array.prototype.concat.apply(this._knownHelpers, registered);
+    this._knownHelpers = this._knownHelpers.concat(registered);
 
     return this;
 };
@@ -315,7 +313,7 @@ Taft.prototype.helpers = function() {
 Taft.prototype.partials = function() {
     if (arguments.length === 0) return Object.keys(this.Handlebars.partials);
 
-    var partials = Array.prototype.concat.apply([], Array.prototype.slice.call(arguments));
+    var partials = flatten(arguments);
     var registered = [];
 
     mergeGlob(partials).forEach(partial => {
@@ -355,4 +353,8 @@ Taft.prototype.stderr = function(err) {
 
 Taft.prototype.debug = function(msg) {
     if (this.verbose && !this.silent) console.error(msg);
+};
+
+var flatten = function(args) {
+    return [].concat.apply([], [].slice.call(args));
 };
