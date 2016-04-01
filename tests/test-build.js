@@ -3,7 +3,6 @@
 var should = require('should');
 var fs = require('fs');
 var taft = require('..');
-var Template = require('../lib/template.js');
 
 var options = {
     helpers: require('./helpers/helper.js'),
@@ -41,12 +40,6 @@ describe('Taft building with layout', function(){
 
     it('has a layout function', function(){
         this.T._layouts['default.handlebars'].should.be.a.function;
-    });
-
-    it('has a template function with some properties', function(){
-        this.T._templates[__dirname + '/pages/test.html'].should.have.a.property('compile');
-        this.T._templates[__dirname + '/pages/test.html'].should.have.a.property('build');
-        this.T._templates[__dirname + '/pages/test.html'].should.have.a.property('layout');
     });
 
 });

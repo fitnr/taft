@@ -10,7 +10,7 @@ describe('Taft properties', function(){
 
     it('are correct', function(){
         taft.prototype.should.have
-            .properties(['layouts', 'data', 'template', 'build', 'helpers', 'partials', 'stderr', 'debug', '_applyLayout']);
+            .properties(['layouts', 'data', 'build', 'helpers', 'partials', 'stderr', 'debug', '_applyLayout']);
 
     });
 
@@ -20,8 +20,7 @@ describe('Taft properties', function(){
 
     it('are complete', function(){
         T.should.be.instanceOf(taft)
-            .and.have.properties(['verbose', 'silent', '_knownHelpers', '_data', '_options',
-                '_templates', '_layouts']);
+            .and.have.properties(['verbose', 'silent', '_knownHelpers', '_data', '_options', '_layouts']);
     });
 
     it('speaks when spoken to', function(){

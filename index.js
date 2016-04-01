@@ -5,7 +5,7 @@ var fs = require('rw'),
     path = require('path'),
     merge = require('merge'),
     mergeGlob = require('./lib/merge-glob'),
-    Template = require('./lib/template'),
+    Content = require('./lib/content'),
     Data = require('./lib/data'),
     gm = require('gray-matter');
 
@@ -40,9 +40,6 @@ function Taft(options) {
     // partials
     this.partials(this._options.partials || []);
 
-    // templates
-    this._templates = {};
-
     // layouts
     this._layouts = {};
 
@@ -60,7 +57,6 @@ Taft.prototype.layouts = function() {
 
     var layouts = Array.prototype.concat.apply([], Array.prototype.slice.call(arguments));
 
-    mergeGlob(layouts).forEach((function(layout) {
     mergeGlob(layouts).forEach(function(layout) {
         var name = path.basename(layout);
         this.debug('adding layout ' + name);
@@ -79,25 +75,25 @@ Taft.prototype.layouts = function() {
     return this;
 };
 
-Taft.prototype._applyLayout = function(name, content, pageData) {
-    this.Handlebars.registerPartial('body', content);
+Taft.prototype._applyLayout = function(name, content) {
+    this.Handlebars.registerPartial('body', content.toString());
 
     try {
-        // override passed pageData with global data
-        // (because layout is 'closer' to core of things)
-        // then append it in a page key
-        pageData.page = merge.clone(pageData);
+        content.data.page = merge.clone(content.data);
 
-        var page = this._layouts[name].build(this.Handlebars, pageData, {noOverride: true});
+        // "prefer_global": passed pageData is overridden by
+        // global data, because layout is 'closer' to core of things
+        // and we also have the page key handy
+        var page = this._layouts[name](content.data, true);
 
         if (this._layouts[name].layout)
-            page = this._applyLayout(this._layouts[name].layout, page.toString(), pageData);
+            page = this._applyLayout(this._layouts[name].layout, page);
 
         return page;
 
     } catch (e) {
         this.debug(e);
-        throw new Error('unable to render page: ' + e.message);
+        throw new Error('unable to render layout ' + name + ': '+ e.message);
 
     } finally {
         this.Handlebars.unregisterPartial('body');
@@ -111,40 +107,36 @@ Taft.prototype._applyLayout = function(name, content, pageData) {
 Taft.prototype._createTemplate = function(file, options) {
     var source = gm.read(file),
         context = source.data || {},
-        content = source.content || '';
+        page = (source.content || '').trimLeft();
 
-    var templateOptions = {
-        data: merge(true, this._data, context),
-        helpers: this._helpers
-    };
+    if (context.published === false || context.published === 0) return;
 
-    // If yaml front matter has layout: null or layout: false, don't assign a layout
-    if (context.hasOwnProperty('layout') && !context.layout)
-        this.debug('not using layout');
-    else
-        templateOptions.layout = context.layout || this._defaultLayout;
+    var data = merge(true, this._data, context);
+
+    // create template function
+    var template = (function(d, prefer_global) {
+        var tdata = (prefer_global) ? merge(true, d, data) : merge(true, data, d);
+        var compiled = this.Handlebars.compile(page, {knownHelpers: this._knownHelpers})(tdata)
+        return new Content(compiled, tdata);
+    }).bind(this);
+
+    // If yaml front matter has layout==null or layout==false, don't assign a layout
+    if (context.layout === false || context.layout === 0)
+        this.debug('not using layout with ' + file);
+
+    else if (!context.layout && this._defaultLayout)
+        context.layout = this._defaultLayout;
 
     // protect against infinite loops
     // if file is foo.hbs, layout can't be foo.hbs
     // if file is default.hbs, layout can't be default.hbs
-    if (templateOptions.layout === path.basename(file)) {
-        delete templateOptions.layout;
+    if (context.layout === path.basename(file))
         this.debug("ignoring layout for " + file + ", since it seems to be itself");
-    }
+    else
+        template.layout = context.layout;
 
-    // class data extended by current context
-    return new Template(content.trimLeft(), templateOptions);
-};
-
-/**
- * Taft.template(file) 
- * Creates a template named (path.resolve(file))
- */
-Taft.prototype.template = function(file) {
-    this.debug('parsing ' + file);
-    this._templates[path.resolve(file)] = this._createTemplate(file);
-
-    return this;
+    // returns Handlebars template function, with a few spicy pickles added
+    return template;
 };
 
 Taft.prototype.defaultLayout = function(layout) {
@@ -189,29 +181,32 @@ Taft.prototype.data = function() {
 };
 
 Taft.prototype.build = function(file, data) {
-    if (!this._templates[path.resolve(file)]) this.template(file);
+    var content;
 
-    var tpl = this._templates[path.resolve(file)];
+    try {
+        var template = this._createTemplate(path.resolve(file));
 
-    // Ignore page when published === false
-    if (tpl.data.published === false || tpl.data.published === 0) {
-        this.debug('ignoring ' + file);
-        return;
+        // Ignore page when published === false
+        if (!template) {
+            this.debug('ignoring ' + file);
+            return;
+        }
+
+        this.stderr('building: ' + file);
+
+        if (template.layout) this.debug('layout: ' + template.layout);
+
+        content = template(data);
+
+        if (this._layouts[template.layout])
+            content = this._applyLayout(template.layout, content);
+
+        content.source = file;
+
+    } catch (err) {
+        this.stderr('error building ' + file + ': ' + err.message);
+        content = new Content();
     }
-
-    this.stderr('building: ' + file);
-    if (tpl.layout) this.debug('layout: ' + tpl.layout);
-
-    var content = tpl.build(this.Handlebars, data);
-
-    if (this._layouts[tpl.layout])
-        content = this._applyLayout(tpl.layout, content.toString(), merge(tpl.data, data));
-
-    // optionally add extension
-    if (tpl.data.ext)
-        content.ext = tpl.data.ext;
-
-    content.source = file;
 
     return content;
 };
