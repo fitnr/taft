@@ -12,6 +12,9 @@
     "type": "git",
     "url": "http://github.com/fitnr/taft"
   },
+  "engines": {
+    "node": ">=4.0.0"
+  },
   "keywords": [
     "command line utilities",
     "yfm",
