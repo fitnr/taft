@@ -358,3 +358,7 @@ var options = {
 // returns a string containing the result
 var result = Taft.taft('source/page1.handlebars', options);
 ````
+
+## License
+
+Taft is available under the GNU General Public License. It comes with absolutely no warranty. See LICENSE for more.
