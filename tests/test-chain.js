@@ -40,8 +40,8 @@ describe('Taft chaining', function(){
         this.T2.data().a.should.equal(1);
         this.T2.data().b.should.equal(2);
 
-        this.T2.layouts().should.be.instanceOf(Array);
-        should.deepEqual(this.T2.layouts(), ['default.handlebars', 'partial.handlebars']);
+        this.T2.layouts().should.be.instanceOf(Set);
+        should.deepEqual(this.T2.layouts(), new Set(['default.handlebars', 'partial.handlebars']));
     });
 
 });

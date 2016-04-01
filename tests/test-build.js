@@ -25,8 +25,9 @@ describe('Taft building with layout', function(){
     });
 
     it('has the default layout', function(){
-        this.T.layouts(__dirname + '/layouts/default.handlebars');
-        this.T._layoutNames.should.containEql('default.handlebars');
+        var x = __dirname + '/layouts/default.handlebars';
+        this.T.layouts(x);
+        this.T.layouts().has('default.handlebars').should.be.true;
     });
 
     it('has the defaultLayout', function(){
@@ -39,7 +40,7 @@ describe('Taft building with layout', function(){
     });
 
     it('has a layout function', function(){
-        this.T._layouts['default.handlebars'].should.be.a.function;
+        this.T._getLayout('default.handlebars').should.be.a.function;
     });
 
     it('ignored file marked published=false', function() {

@@ -13,7 +13,7 @@ describe('taft helpers', function(){
             handlebars: Handlebars
         });
 
-        W._knownHelpers.should.containEql('cow');
+        W._helpers.should.containEql('cow');
     });
 
     it('register a helper string', function() {
@@ -21,6 +21,6 @@ describe('taft helpers', function(){
             helpers: 'tests/helpers/other-helpers.js',
         });
 
-        S._knownHelpers.should.containEql('goo');
+        S._helpers.should.containEql('goo');
     });
 });
