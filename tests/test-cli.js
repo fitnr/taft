@@ -36,6 +36,8 @@ const Fixture = fs.readFileSync(__dirname + '/fixtures/index.html', {
 
 describe('Taft cli', function(){
     it('gives help when asked', function(done) {
+        this.timeout(500);
+
         child.exec(command +" --help", function (e, result, error) {
             if (e) throw e;
 
@@ -48,6 +50,8 @@ describe('Taft cli', function(){
     });
 
     it('matches fixture', function(done) {
+        this.timeout(1000);
+
         taft = child.spawn(command, spawnArgs, {encoding: 'utf-8'});
 
         taft.on('close', function(code) {
@@ -61,6 +65,8 @@ describe('Taft cli', function(){
     });
 
     it('accepts prefixed data glob as list', function(done) {
+        this.timeout(1000);
+
         var fixture = fs.readFileSync(__dirname + '/fixtures/prefixed-list.txt', {encoding: 'utf-8'});
         var args = " --output tmp.html --silent --data 'cats:tests/data/*' tests/pages/prefix-list.html";
 
@@ -73,6 +79,8 @@ describe('Taft cli', function(){
     });
 
     it('runs silently', function(done) {
+        this.timeout(1000);
+
         child.exec(command +" --silent --output tmp.html "+ execArgs.join(' '), function(e, result, error) {
             child.exec('rm tmp.html');
 
@@ -84,6 +92,8 @@ describe('Taft cli', function(){
     });
 
     it('runs verbosely', function(done) {
+        this.timeout(1000);
+
         var exec = command +" --verbose "+ execArgs.join(' ');
 
         child.exec(exec, function(e, result, error) {
