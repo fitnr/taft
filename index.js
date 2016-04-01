@@ -17,6 +17,12 @@ function taft(file, options) {
 module.exports = Taft;
 module.exports.taft = taft;
 
+/**
+ * The Taft object reads layouts, partials and helpers, and then builds files.
+ * @constructor
+ * @this {Taft}
+ * @param {object} options
+ */
 function Taft(options) {
     if (!(this instanceof Taft)) return new Taft(options || {});
 
@@ -49,9 +55,11 @@ function Taft(options) {
     return this;
 }
 
-/* 
+/**
  * Layouts are just templates of a different name
-*/
+ * @return {Set/Taft} if passed without arguments, returns a
+                      Set of layout names. Otherwise, returns this
+ */
 Taft.prototype.layouts = function() {
     if (arguments.length === 0) return Object.keys(this._layoutNames);
 
@@ -79,7 +87,7 @@ Taft.prototype.layouts = function() {
 
 /**
  * Set or get the default layout
-*/
+ */
 Taft.prototype.defaultLayout = function(layout) {
     if (typeof layout === 'undefined') return this._defaultLayout;
 
@@ -94,9 +102,10 @@ Taft.prototype.defaultLayout = function(layout) {
 };
 
 /**
-    * Taft._getLayout(name)
-    * return layout with the given name, creating the template if needed
-*/
+ * Taft._getLayout(name)
+ * @param {string} name Layout to get.
+ * @return {Content} layout with the given name, creating the template if needed
+ */
 Taft.prototype._getLayout = function(name) {
     if (this.layouts().indexOf(name) < 0) {
         // if layout not registered, bail
@@ -111,10 +120,12 @@ Taft.prototype._getLayout = function(name) {
 }
 
 /**
-    * Taft._applyLayout(layout, content)
-    * Get a layout and register 'content' as the {{>body}} partial
-    * Returns the built result, with an option recursive call to layout.layout
-*/
+ * Taft._applyLayout(layout, content)
+ * Get a layout and register 'content' as the {{>body}} partial
+ * @param {string} layout Name of layout
+ * @param {Content} content Content object to apply layout to.
+ * @returns {Content} the built result, with an option recursive call to layout.layout
+ */
 Taft.prototype._applyLayout = function(layout, content) {
     if (typeof layout === 'undefined') return content;
 
@@ -141,8 +152,9 @@ Taft.prototype._applyLayout = function(layout, content) {
 };
 
 /**
- * Taft._createTemplate(file, options) 
- * returns a template object named (path.resolve(file))
+ * @param {string} file
+ * @param {object} options
+ * @returns {object} a template object named (path.resolve(file))
  */
 Taft.prototype._createTemplate = function(file, options) {
     var source = gm.read(file),
@@ -176,10 +188,11 @@ Taft.prototype._createTemplate = function(file, options) {
 };
 
 /*
-    Takes a mixed list of files, globs, js objects, JSON, YAML, INI
-    globs may optionally be prefixed (prefix:data/*.yaml) to direct the data into a so-named Array
-    The pseudo-file /dev/stdin may also be prefixed to place it into an object
-*/
+ *  Takes a mixed list of files, globs, js objects, JSON, YAML, INI
+ *  globs may optionally be prefixed (prefix:data/*.yaml) to direct the data into a so-named Array
+ *  The pseudo-file /dev/stdin may also be prefixed to place it into an object
+ *  @return {mixed} if passed with arguments, returns this. If passed without arguments, returns data.
+ */
 Taft.prototype.data = function() {
     if (arguments.length === 0) return this._data;
 

@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "cover": "istanbul cover _mocha -- tests",
-    "test": "mocha tests/*.js"
+    "test": "mocha tests/*.js",
+    "docs": "jsdoc index.js lib/* -d docs"
   },
   "bin": "bin/taft.js",
   "repository": {
