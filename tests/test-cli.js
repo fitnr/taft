@@ -53,7 +53,7 @@ describe('Taft cli', function(){
         taft.on('close', function(code) {
             var result = fs.readFileSync('tmp.html', {encoding: 'utf-8'});
 
-            Fixture.trim().should.be.equal(result.trim(), 'New file matches');
+            Fixture.trim().should.be.equal(result.trim(), 'New file matches: ' + command + ' ' + spawnArgs.join(' '));
 
             child.exec('rm tmp.html');
             done();

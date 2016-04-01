@@ -6,7 +6,8 @@ var taft = require('..');
 describe('Taft chaining', function(){
     before(function(){
         this.T2 = new taft({
-            layouts: [__dirname + '/layouts/default.handlebars', __dirname + '/partials/partial.handlebars']
+            layouts: [__dirname + '/layouts/default.handlebars', __dirname + '/partials/partial.handlebars'],
+            partials: [__dirname + '/partials/partial.handlebars'],
         });
     });
 
@@ -28,18 +29,24 @@ describe('Taft chaining', function(){
         }
     });
 
-    it('returns contents when arguments are empty', function(){
+    it('helpers returns contents when arguments are empty', function(){
         this.T2.helpers().should.be.instanceOf(Array);
         this.T2.helpers().should.containDeep(['each']);
+    });
 
+    it('partials returns contents when arguments are empty', function(){
         this.T2.partials().should.be.instanceOf(Array);
         this.T2.partials().should.be.containDeep(['partial']);
+    });
 
+    it('data returns contents when arguments are empty', function(){
         this.T2.data([{b: 2}]);
         this.T2.data().should.be.instanceOf(Object);
         this.T2.data().a.should.equal(1);
         this.T2.data().b.should.equal(2);
+    });
 
+    it('layouts returns contents when arguments are empty', function(){
         this.T2.layouts().should.be.instanceOf(Set);
         should.deepEqual(this.T2.layouts(), new Set(['default.handlebars', 'partial.handlebars']));
     });

@@ -49,8 +49,8 @@ describe('data lib', function(){
         parseObj('foo=bar').should.deepEqual({foo: "bar"});
     });
 
-    it('parseObj returns empty when it does not understand', function(){
-        parseObj('lksdjflksdjf').should.deepEqual({});
+    it('parseObj returns undefined when it does not understand', function(){
+        (typeof parseObj('lksdjflksdjf')).should.equal('undefined');
     });
 
     it('readFile understands YAML and YFM', function(){
