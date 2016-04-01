@@ -74,7 +74,7 @@ function render(err, warn, files) {
     // render output
     var taft = new Taft(options);
 
-    files.forEach(function(file) {
+    files.forEach(file => {
         var outfile = outFilePath(file),
             build;
         
