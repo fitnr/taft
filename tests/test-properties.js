@@ -20,7 +20,7 @@ describe('Taft properties', function(){
 
     it('are complete', function(){
         T.should.be.instanceOf(taft)
-            .and.have.properties(['verbose', 'silent', '_knownHelpers', '_data', '_options', '_layouts']);
+            .and.have.properties(['verbose', 'silent', '_helpers', '_data', '_options', '_layouts']);
     });
 
     it('speaks when spoken to', function(){

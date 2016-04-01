@@ -28,31 +28,21 @@ function Taft(options) {
 
     this._options = options || {};
 
-    this.Handlebars = this._options.handlebars || require('handlebars');
+    this.Handlebars = options.handlebars || require('handlebars');
 
-    this.silent = this._options.silent || false;
-    this.verbose = this._options.verbose || false;
+    this.silent = options.silent || false;
+    this.verbose = options.verbose || false;
 
-    // data
+    // initialize "private" globals
     this._data = {};
-    this.data(this._options.data || []);
+    this._helpers = [];
+    this._layouts = new Map();
 
-    // helpers
-    // uncomment when HH 0.6.0 is out
-    // HH.register(this.Handlebars, {});
-    this._knownHelpers = [];
-    this.helpers(this._options.helpers || {});
-
-    // partials
-    this.partials(this._options.partials || []);
-
-    // layouts
-    this._layoutNames = {};
-    this._layouts = {};
-
-    this.layouts(this._options.layouts || []);
-
-    return this;
+    return this
+        .data(options.data || [])
+        .helpers(options.helpers || {})
+        .partials(options.partials || [])
+        .layouts(options.layouts || []);
 }
 
 /**
@@ -61,20 +51,19 @@ function Taft(options) {
                       Set of layout names. Otherwise, returns this
  */
 Taft.prototype.layouts = function() {
-    if (arguments.length === 0) return Object.keys(this._layoutNames);
+    if (arguments.length === 0) return new Set(this._layouts.keys());
 
     var layouts = flatten(arguments);
 
-    // populate _layoutNames object
-    var layoutFileNames = mergeGlob(layouts);
+    // populate this._layouts Map
+    mergeGlob(layouts).forEach(item =>
+        this._layouts.set(path.basename(item), item));
 
-    layoutFileNames.forEach(x => this._layoutNames[path.basename(x)] = x);
-
-    this.debug('found layouts: ' + Object.keys(this._layoutNames).join(', '));
+    this.debug('added layouts: ' + Array.from(this._layouts.keys()).join(', '));
 
     // as a convenience, when there's only one layout, that will be the default
-    if (this.layouts().length === 1)
-        this._defaultLayout = path.basename(layoutFileNames[0]);
+    if (this._layouts.size === 1)
+        this._defaultLayout = path.basename(Array.from(this._layouts)[0][0]);
 
     else if (this._options.defaultLayout)
         this._defaultLayout = path.basename(this._options.defaultLayout);
@@ -93,7 +82,7 @@ Taft.prototype.defaultLayout = function(layout) {
 
     layout = path.basename(layout);
 
-    if (this.layouts().indexOf(layout) >= 0)
+    if (this.layouts().has(layout))
         this._defaultLayout = layout;
     else
         this.stderr('Not setting default layout. Could not find: ' + layout);
@@ -107,16 +96,20 @@ Taft.prototype.defaultLayout = function(layout) {
  * @return {Content} layout with the given name, creating the template if needed
  */
 Taft.prototype._getLayout = function(name) {
-    if (this.layouts().indexOf(name) < 0) {
+    if (!this._layouts.has(name)) {
         // if layout not registered, bail
         this.stderr('could not find layout : "' + name + '"');
         return;
     }
 
-    if (!this._layouts[name])
-        this._layouts[name] = this._createTemplate(this._layoutNames[name]);
+    var layout = this._layouts.get(name);
 
-    return this._layouts[name]
+    if (typeof layout === 'string') {
+        layout = this._createTemplate(layout);
+        this._layouts.set(name, layout);
+    }
+
+    return layout
 }
 
 /**
@@ -181,7 +174,7 @@ Taft.prototype._createTemplate = function(file, options) {
     // anonymous function is basically a Handlebars template function, with a few spicy pickles added
     return (function(pageData, prefer_global) {
         var tplData = (prefer_global) ? merge(pageData, data) : merge(true, data, pageData);
-        var build = this.Handlebars.compile(page, {knownHelpers: this._knownHelpers});
+        var build = this.Handlebars.compile(page, {knownHelpers: this._helpers});
         var compiled = build(tplData);
         return this._applyLayout(tplData.layout, new Content(compiled, tplData));
     }).bind(this);
@@ -305,7 +298,7 @@ Taft.prototype.helpers = function() {
 
     if (registered.length) this.debug('registered helpers: ' + registered.join(', '));
 
-    this._knownHelpers = this._knownHelpers.concat(registered);
+    this._helpers = this._helpers.concat(registered);
 
     return this;
 };
