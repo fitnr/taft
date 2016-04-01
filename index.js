@@ -196,6 +196,7 @@ Taft.prototype.data = function() {
 
         if (keys.length === 0)
             this.stderr("could not read any data from " + argument);
+
         else if (keys.length === 1)
             this.debug("parsed " + keys[0]);
         else
@@ -245,10 +246,10 @@ Taft.prototype.helpers = function() {
         var module;
 
         try {
-            if (typeof(h) === 'object') {
+            if (typeof h === 'object') {
                 this.Handlebars.registerHelper(h);
 
-            } else if (typeof(h) === 'string') {
+            } else if (typeof h === 'string') {
 
                 // load the module
                 try {
@@ -267,7 +268,7 @@ Taft.prototype.helpers = function() {
                         this.debug("register function err for " + h);
                     }
 
-                else if (typeof(module) === 'function')
+                else if (typeof module === 'function')
                     try {
                         this.Handlebars.registerHelper(module());
                         
@@ -278,13 +279,13 @@ Taft.prototype.helpers = function() {
                         module(this.Handlebars, this._options);
                     }
 
-                else if (typeof(module) === 'object')
+                else if (typeof module === 'object')
                     this.Handlebars.registerHelper(module);
 
                 else
                     throw new Error("Didn't find a function or object in " + h);
             } else {
-                this.stderr('Ignoring helper because it\'s a ' + typeof(h) + '. Expected an object or the name of a module');
+                this.stderr('Ignoring helper because it\'s a ' + typeof h + '. Expected an object or the name of a module');
             }
 
         } catch (err) {
@@ -310,7 +311,7 @@ Taft.prototype.partials = function() {
     var registered = [];
 
     mergeGlob(partials).forEach(partial => {
-        if (typeof(partial) === 'object') {
+        if (typeof partial === 'object') {
 
             for (var name in partial) {
                 if (partial.hasOwnProperty(name)) {
