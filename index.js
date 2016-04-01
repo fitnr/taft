@@ -51,7 +51,7 @@ function Taft(options) {
                       Set of layout names. Otherwise, returns this
  */
 Taft.prototype.layouts = function() {
-    if (arguments.length === 0) return new Set([...this._layouts.keys()]);
+    if (arguments.length === 0) return new Set(this._layouts.keys());
 
     var layouts = flatten(arguments);
 
@@ -59,7 +59,7 @@ Taft.prototype.layouts = function() {
     mergeGlob(layouts).forEach(item =>
         this._layouts.set(path.basename(item), item));
 
-    this.debug('added layouts: ' + [...this._layouts.keys()].join(', '));
+    this.debug('added layouts: ' + Array.from(this._layouts.keys()).join(', '));
 
     // as a convenience, when there's only one layout, that will be the default
     if (this._layouts.size === 1)
