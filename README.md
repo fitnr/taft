@@ -157,7 +157,7 @@ taft --layout layouts/default.hbs --layout layouts/potions.hbs
 ````
 
 ### Partials
-Taft will register partials from one or more files.
+Taft will register partials from one or more files. Unlike with layouts, all of the partials must be parsed before pages can be built, so registering many partials may slow down your build.
 
 ````
 # Register the partial {{> fun}}
