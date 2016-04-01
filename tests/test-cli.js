@@ -91,11 +91,10 @@ describe('Taft cli', function(){
 
             error.should.not.equal('');
 
-            error.indexOf('registered helpers').should.be.above(-1, exec);
-            error.indexOf('adding layout').should.be.above(-1, exec);
-            error.indexOf('registered partials').should.be.above(-1, exec);
-            error.indexOf('set default layout').should.be.above(-1, exec);
-            error.indexOf('building').should.be.above(-1, exec);
+            error.indexOf('registered helpers').should.be.above(-1, 'registered helpers: ' + exec);
+            error.indexOf('registered partials').should.be.above(-1, 'registered partials: ' + exec);
+            error.indexOf('set default layout').should.be.above(-1, 'set default layout: ' + exec);
+            error.indexOf('building').should.be.above(-1, 'building: ' + exec);
 
             done();
         });

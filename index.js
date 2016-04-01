@@ -41,9 +41,9 @@ function Taft(options) {
     this.partials(this._options.partials || []);
 
     // layouts
+    this._layoutNames = {};
     this._layouts = {};
 
-    this.Handlebars.registerPartial('body', '');
     this.layouts(this._options.layouts || []);
 
     return this;
@@ -53,19 +53,21 @@ function Taft(options) {
  * Layouts are just templates of a different name
 */
 Taft.prototype.layouts = function() {
-    if (arguments.length === 0) return Object.keys(this._layouts);
+    if (arguments.length === 0) return Object.keys(this._layoutNames);
 
     var layouts = Array.prototype.concat.apply([], Array.prototype.slice.call(arguments));
 
-    mergeGlob(layouts).forEach(function(layout) {
-        var name = path.basename(layout);
-        this.debug('adding layout ' + name);
-        this._layouts[name] = this._createTemplate(layout);
-    }, this);
+    // populate _layoutNames object
+    var layoutFileNames = mergeGlob(layouts);
+
+    layoutFileNames.forEach(function(x) { this._layoutNames[path.basename(x)] = x; }, this)
+
+    this.debug('found layouts: ' + Object.keys(this._layoutNames).join(', '));
 
     // as a convenience, when there's only one layout, that will be the default
-    if (Object.keys(this._layouts).length === 1)
-        this._defaultLayout = path.basename(Object.keys(this._layouts).pop());
+    if (this.layouts().length === 1)
+        this._defaultLayout = path.basename(layoutFileNames[0]);
+
     else if (this._options.defaultLayout)
         this._defaultLayout = path.basename(this._options.defaultLayout);
 
@@ -75,25 +77,63 @@ Taft.prototype.layouts = function() {
     return this;
 };
 
-Taft.prototype._applyLayout = function(name, content) {
-    this.Handlebars.registerPartial('body', content.toString());
+/**
+ * Set or get the default layout
+*/
+Taft.prototype.defaultLayout = function(layout) {
+    if (typeof layout === 'undefined') return this._defaultLayout;
+
+    layout = path.basename(layout);
+
+    if (this.layouts().indexOf(layout) >= 0)
+        this._defaultLayout = layout;
+    else
+        this.stderr('Not setting default layout. Could not find: ' + layout);
+
+    return this;
+};
+
+/**
+    * Taft._getLayout(name)
+    * return layout with the given name, creating the template if needed
+*/
+Taft.prototype._getLayout = function(name) {
+    if (this.layouts().indexOf(name) < 0) {
+        // if layout not registered, bail
+        this.stderr('could not find layout : "' + name + '"');
+        return;
+    }
+
+    if (!this._layouts[name])
+        this._layouts[name] = this._createTemplate(this._layoutNames[name]);
+
+    return this._layouts[name]
+}
+
+/**
+    * Taft._applyLayout(layout, content)
+    * Get a layout and register 'content' as the {{>body}} partial
+    * Returns the built result, with an option recursive call to layout.layout
+*/
+Taft.prototype._applyLayout = function(layout, content) {
+    if (typeof layout === 'undefined') return content;
 
     try {
+        var layout_template = this._getLayout(layout);
+
+        if (!layout_template) return content;
+
+        this.Handlebars.registerPartial('body', content.toString());
+
         content.data.page = merge.clone(content.data);
 
         // "prefer_global": passed pageData is overridden by
         // global data, because layout is 'closer' to core of things
         // and we also have the page key handy
-        var page = this._layouts[name](content.data, true);
-
-        if (this._layouts[name].layout)
-            page = this._applyLayout(this._layouts[name].layout, page);
-
-        return page;
+        return layout_template(content.data, true);
 
     } catch (e) {
-        this.debug(e);
-        throw new Error('unable to render layout ' + name + ': '+ e.message);
+        throw new Error('unable to render layout ' + layout + ' ('+ e.message + ')');
 
     } finally {
         this.Handlebars.unregisterPartial('body');
@@ -111,15 +151,7 @@ Taft.prototype._createTemplate = function(file, options) {
 
     if (context.published === false || context.published === 0) return;
 
-    var data = merge(true, this._data, context);
-
-    // create template function
-    var template = (function(d, prefer_global) {
-        var tdata = (prefer_global) ? merge(true, d, data) : merge(true, data, d);
-        var compiled = this.Handlebars.compile(page, {knownHelpers: this._knownHelpers})(tdata)
-        return new Content(compiled, tdata);
-    }).bind(this);
-
+    // Assign layout:
     // If yaml front matter has layout==null or layout==false, don't assign a layout
     if (context.layout === false || context.layout === 0)
         this.debug('not using layout with ' + file);
@@ -129,26 +161,18 @@ Taft.prototype._createTemplate = function(file, options) {
 
     // protect against infinite loops
     // if file is foo.hbs, layout can't be foo.hbs
-    // if file is default.hbs, layout can't be default.hbs
     if (context.layout === path.basename(file))
-        this.debug("ignoring layout for " + file + ", since it seems to be itself");
-    else
-        template.layout = context.layout;
+        context.layout = undefined;
 
-    // returns Handlebars template function, with a few spicy pickles added
-    return template;
-};
+    var data = merge(true, this._data, context);
 
-Taft.prototype.defaultLayout = function(layout) {
-
-    if (layout === undefined) return this._defaultLayout;
-
-    if (this._layouts[path.basename(layout)])
-        this._defaultLayout = layout;
-    else
-        this.stderr('Not setting layout. Could not find: '+ layout);
-
-    return this;
+    // anonymous function is basically a Handlebars template function, with a few spicy pickles added
+    return (function(pageData, prefer_global) {
+        var tplData = (prefer_global) ? merge(pageData, data) : merge(true, data, pageData);
+        var build = this.Handlebars.compile(page, {knownHelpers: this._knownHelpers});
+        var compiled = build(tplData);
+        return this._applyLayout(tplData.layout, new Content(compiled, tplData));
+    }).bind(this);
 };
 
 /*
@@ -194,12 +218,7 @@ Taft.prototype.build = function(file, data) {
 
         this.stderr('building: ' + file);
 
-        if (template.layout) this.debug('layout: ' + template.layout);
-
         content = template(data);
-
-        if (this._layouts[template.layout])
-            content = this._applyLayout(template.layout, content);
 
         content.source = file;
 

@@ -93,6 +93,8 @@ The following sections give details about the main options: `--data`, `--helper`
 ### Layouts
 Use a layout (aka template) to wrap a file with content. The layout should use the `{{> body}}` helper to refer to the content.
 
+You can register as many layouts as you like with Taft. However, they should not share basenames (e.g. `spooky/example.handlebars' and `scary/example.handlebars`).
+
 The YFM data from the content page will be available in the layout. If there's a conflict, use the 'page' object.
 ````handlebars
 ---

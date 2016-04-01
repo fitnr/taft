@@ -26,7 +26,7 @@ describe('Taft building with layout', function(){
 
     it('has the default layout', function(){
         this.T.layouts(__dirname + '/layouts/default.handlebars');
-        this.T._layouts.should.have.property('default.handlebars');
+        this.T._layoutNames.should.containEql('default.handlebars');
     });
 
     it('has the defaultLayout', function(){
@@ -42,4 +42,8 @@ describe('Taft building with layout', function(){
         this.T._layouts['default.handlebars'].should.be.a.function;
     });
 
+    it('ignored file marked published=false', function() {
+        var unpub = this.T.build(__dirname + '/pages/unpublished.html');
+        should.not.exist(unpub, 'unpublished files do not exist');
+    });
 });
