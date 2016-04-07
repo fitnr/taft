@@ -13,8 +13,9 @@ const execArgs = [
         '--data', '\'{"bees": "bees"}\'',
         '--data', 'tests/data/yaml.yaml',
         '--data', 'tests/data/json.json',
-        '--layout', "tests/layouts/*",
-        '--partial', "tests/partials/*",
+        '--layout', "'tests/layouts/*'",
+        '-y default.handlebars',
+        '--partial', "'tests/partials/*'",
         'tests/pages/test.html'
     ];
 const spawnArgs = [
@@ -80,13 +81,13 @@ describe('Taft cli', function(){
 
     it('runs silently', function(done) {
         this.timeout(1000);
-
-        child.exec(command +" --silent --output tmp.html "+ execArgs.join(' '), function(e, result, error) {
+        var cmd = command + " --silent --output tmp.html " + execArgs.join(' ');
+        child.exec(cmd, function(e, result, error) {
             child.exec('rm tmp.html');
 
             if (e) throw e;
 
-            error.should.equal('');
+            error.should.equal('', cmd);
             done();
         });
     });
