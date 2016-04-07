@@ -117,7 +117,8 @@ Taft.prototype.defaultLayout = function(layout) {
 Taft.prototype._getLayout = function(name) {
     if (!this._layouts.has(name)) {
         // if layout not registered, bail
-        this.stderr('could not find layout : "' + name + '"');
+        if (typeof name === 'string')
+            this.stderr('could not find layout :', name);
         return;
     }
 
