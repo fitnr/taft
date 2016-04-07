@@ -2,16 +2,17 @@
 
 Generate static html files from Handlebars files with YAML front matter.
 
-Intended as a pandoc-like tool for building a simple page, or even for generating basic static websites, Taft is lightning fast and simple to use.
-
+Intended as a pandoc-like tool for building a simple page, or even for generating basic static websites, Taft is lightning fast, has a great command-line tool, and works for building many files or just one.
 
 ### Installing
 
-Taft works great installed either locally or globally. If you're running a local copy, use `node_modules/.bin/taft`.
+Taft works great installed either locally or globally.
 
 ````
 npm install [-g] taft
 ````
+
+(If you install locally, use `node_modules/.bin/taft` as the command instead of `taft` in the examples.)
 
 ## command line
 
