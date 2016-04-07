@@ -125,7 +125,7 @@ Taft.prototype._getLayout = function(name) {
     var layout = this._layouts.get(name);
 
     if (typeof layout === 'string') {
-        layout = this._createTemplate(layout);
+        layout = this._createTemplate(layout, {isLayout: true});
         this._layouts.set(name, layout);
     }
 
@@ -136,11 +136,14 @@ Taft.prototype._getLayout = function(name) {
  * Taft._applyLayout(layout, content)
  * Get a layout and register 'content' as the {{>body}} partial
  * @param {string} layout Name of layout
- * @param {Content} content Content object to apply layout to.
+ * @param {Content} content Content object to which to apply layout
+ * @param {object} options
  * @returns {Content} the built result, with an option recursive call to layout.layout
  */
-Taft.prototype._applyLayout = function(layout, content) {
+Taft.prototype._applyLayout = function(layout, content, options) {
     if (typeof layout === 'undefined') return content;
+
+    options = options || {};
 
     try {
         var layout_template = this._getLayout(layout);
@@ -149,7 +152,8 @@ Taft.prototype._applyLayout = function(layout, content) {
 
         this.Handlebars.registerPartial('body', content.toString());
 
-        content.data.page = merge.clone(content.data);
+        if (!options.isLayout)
+            content.data.page = merge.clone(content.data);
 
         // "prefer_global": passed pageData is overridden by
         // global data, because layout is 'closer' to core of things
@@ -174,6 +178,8 @@ Taft.prototype._createTemplate = function(file, options) {
         context = source.data || {},
         page = (source.content || '').trimLeft();
 
+    options = options || {};
+
     if (context.published === false || context.published === 0) return;
 
     // Assign layout:
@@ -195,7 +201,7 @@ Taft.prototype._createTemplate = function(file, options) {
 
         var template = this.Handlebars.compile(page, {knownHelpers: this._helpers});
         var compiled = template(tplData);
-        return this._applyLayout(tplData.layout, new Content(compiled, tplData));
+        return this._applyLayout(tplData.layout, new Content(compiled, tplData), {isLayout: options.isLayout});
     }).bind(this);
 };
 
