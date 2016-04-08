@@ -39,7 +39,7 @@ const license = `\n  copyright (C) 2016 Neil Freeman
   and you are welcome to redistribute it under certain conditions.`
 
 program
-    .version('0.4.1')
+    .version('0.4.2')
     .usage('[options] <file ...>')
     .description('Render files with Handlebars\n' + license)
     .option('-H, --helper <file>', 'js file that exports an object containing handlebars helpers', collect, [])
