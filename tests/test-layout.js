@@ -53,19 +53,17 @@ describe('When building nested layouts', function(){
 
     before(function(){
         var options = {
-            helpers: ['./helpers/helper.js'],
+            helpers: ['tests/helpers/helper.js'],
             partials: ['tests/partials/partial.handlebars'],
             data: data,
             verbose: 0,
             silent: 1,
             layouts: ['tests/layouts/*.handlebars'],
-            'defaultLayout': 'default.handlebars'
+            'defaultLayout': 'special.handlebars'
         };
         this.taft = new Taft(options);
         this.fixture = fs.readFileSync(__dirname + '/fixtures/nested.html', {encoding: 'utf-8'});
     });
-
-
 
     it('builds them like a normal person', function(){
         this.taft.build('tests/pages/nested.html').toString().should.equal(this.fixture);

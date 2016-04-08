@@ -187,21 +187,22 @@ Taft.prototype._createTemplate = function(file, options) {
     if (context.layout === false || context.layout === 0)
         this.debug('not using layout with ' + file);
 
-    else if (!context.layout && this._defaultLayout)
+    else if (!context.layout && this._defaultLayout && !options.isLayout)
         context.layout = this._defaultLayout;
 
     var data = merge(true, this._data, context);
 
     // anonymous function is basically a Handlebars template function, with a few spicy pickles added
-    return (function(pageData, prefer_global) {
-        var tplData = (prefer_global) ? merge(pageData, data) : merge(true, data, pageData);
+    return (function(pageData, preferGlobal) {
+        var tplData = preferGlobal ? merge(pageData, data) : merge(true, data, pageData);
 
         // layout doesn't get overridden
         tplData.layout = (tplData.layout===path.basename(file)) ? undefined : tplData.layout;
 
         var template = this.Handlebars.compile(page, {knownHelpers: this._helpers});
-        var compiled = template(tplData);
-        return this._applyLayout(tplData.layout, new Content(compiled, tplData), {isLayout: options.isLayout});
+        var newTemplate = new Content(template(tplData), tplData);
+
+        return this._applyLayout(tplData.layout, newTemplate, {isLayout: options.isLayout});
     }).bind(this);
 };
 
