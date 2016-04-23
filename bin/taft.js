@@ -52,7 +52,7 @@ program
     .option('-C, --cwd <path>', 'save files relative this directory', String)
     .option('-e, --ext <string>', 'output file extension (default: html)', String, 'html')
     .option('-v, --verbose', 'output some debugging information')
-    .option('-s, --silent', "don't output anything")
+    .option('-s, --silent', "don't output progress information")
     .parse(process.argv);
 
 function outFilePath(file) {

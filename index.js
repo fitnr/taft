@@ -104,7 +104,7 @@ Taft.prototype.defaultLayout = function(layout) {
     if (this.layouts().has(layout))
         this._defaultLayout = layout;
     else
-        this.stderr('Not setting default layout. Could not find: ' + layout);
+        this.info('Not setting default layout. Could not find: ' + layout);
 
     return this;
 };
@@ -118,7 +118,7 @@ Taft.prototype._getLayout = function(name) {
     if (!this._layouts.has(name)) {
         // if layout not registered, bail
         if (typeof name === 'string')
-            this.stderr('could not find layout :', name);
+            this.err('could not find layout :', name);
         return;
     }
 
@@ -221,7 +221,7 @@ Taft.prototype.data = function() {
         var keys = Object.keys(r);
 
         if (keys.length === 0)
-            this.stderr("could not read any data from " + argument);
+            this.err("could not read any data from " + argument);
 
         else if (keys.length === 1)
             this.debug("parsed " + keys[0]);
@@ -248,12 +248,12 @@ Taft.prototype.build = function(file, data) {
             return;
         }
 
-        this.stderr('building: ' + file);
+        this.debug('building: ' + file);
 
         content = template(data);
 
     } catch (err) {
-        this.stderr('error building ' + file + ': ' + err.message);
+        this.err('error building ' + file + ': ' + err.message);
         content = new Content();
     }
 
@@ -288,11 +288,7 @@ Taft.prototype.helpers = function() {
 
                 // register the module one of a couple of ways
                 if (module.register)
-                    try {
-                        module.register(this.Handlebars, this._options, {});    
-                    } catch (err) {
-                        this.debug("register function err for " + h);
-                    }
+                    module.register(this.Handlebars, this._options, {});    
 
                 else if (typeof module === 'function')
                     try {
@@ -311,12 +307,11 @@ Taft.prototype.helpers = function() {
                 else
                     throw new Error("Didn't find a function or object in " + h);
             } else {
-                this.stderr('Ignoring helper because it\'s a ' + typeof h + '. Expected an object or the name of a module');
+                this.err('ignoring helper because it\'s a ' + typeof h + '. Expected an object or the name of a module');
             }
 
         } catch (err) {
-            this.stderr("Error registering helper '" + h + "'");
-            this.stderr(err);
+            this.err("error registering helper '" + h + "': " + err.message);
         }
     });
 
@@ -353,7 +348,7 @@ Taft.prototype.partials = function() {
                 this.Handlebars.registerPartial(p, fs.readFileSync(partial, 'utf8'));
                 registered.push(p);
             } catch (err) {
-                this.stderr("Could not register partial: " + p);
+                this.err("could not register partial: " + p);
             }
         }
 
@@ -364,11 +359,11 @@ Taft.prototype.partials = function() {
     return this;
 };
 
-Taft.prototype.stderr = function(err) {
-    if (!this.silent) {
-        err = typeof err === 'object' && 'message' in err ? err.message : err;
-        console.error(err);
-    }
+
+Taft.prototype.err = function(msg) { console.error(msg); };
+
+Taft.prototype.info = function(msg) {
+    if (!this.silent) console.error(msg);
 };
 
 Taft.prototype.debug = function(msg) {

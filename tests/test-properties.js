@@ -10,7 +10,7 @@ describe('Taft properties', function(){
 
     it('are correct', function(){
         taft.prototype.should.have
-            .properties(['layouts', 'data', 'build', 'helpers', 'partials', 'stderr', 'debug', '_applyLayout']);
+            .properties(['layouts', 'data', 'build', 'helpers', 'partials', 'err', 'info', 'debug', '_applyLayout']);
 
     });
 
