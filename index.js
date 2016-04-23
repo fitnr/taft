@@ -174,7 +174,7 @@ Taft.prototype._applyLayout = function(layout, content, options) {
  * @returns {object} a template object named (path.resolve(file))
  */
 Taft.prototype._createTemplate = function(file, options) {
-    var source = gm.read(file),
+    var source = gm.read(file, {strict: true}),
         context = source.data || {},
         page = (source.content || '').trimLeft();
 
@@ -252,12 +252,12 @@ Taft.prototype.build = function(file, data) {
 
         content = template(data);
 
-        content.source = file;
-
     } catch (err) {
         this.stderr('error building ' + file + ': ' + err.message);
         content = new Content();
     }
+
+    content.source = file;
 
     return content;
 };
