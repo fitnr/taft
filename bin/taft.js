@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+/* jshint esversion: 6 */
 /*
  * taft: generate files with Handlebars
  * Copyright (C) 2016 Neil Freeman
@@ -36,7 +37,7 @@ function collect(val, memo) {
 
 const license = `\n  copyright (C) 2016 Neil Freeman
   This program comes with ABSOLUTELY NO WARRANTY. This is free software,
-  and you are welcome to redistribute it under certain conditions.`
+  and you are welcome to redistribute it under certain conditions.`;
 
 program
     .version('0.4.3')

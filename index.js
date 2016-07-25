@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+/* jshint esversion: 6 */
 
 /*
  * taft: generate files with Handlebars
@@ -129,8 +130,8 @@ Taft.prototype._getLayout = function(name) {
         this._layouts.set(name, layout);
     }
 
-    return layout
-}
+    return layout;
+};
 
 /**
  * Taft._applyLayout(layout, content)
