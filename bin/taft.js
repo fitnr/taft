@@ -104,7 +104,8 @@ function render(err, warn, files) {
         build = taft.build(file, {'TAFT': TAFT});
 
         if (build) {
-            outfile = (outfile === '/dev/stdout') ? outfile : replaceExt(outfile, (build.data.page || TAFT).ext);    
+            var ext = (build.data.page || TAFT).ext || TAFT.ext;
+            outfile = (outfile === '/dev/stdout') ? outfile : replaceExt(outfile, ext);    
             save(outfile, build.toString());
         }
     });
