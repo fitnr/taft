@@ -286,6 +286,7 @@ TAFT: {
     cwd: 'tests',           // --cwd value
     destDir: 'output',      // --dest-dir value 
     ext: 'html',            // --ext value
+    output: 'output.html',  // --output value
     file: 'pages/test.html' // output file path (not including destDir)
 }
 ````

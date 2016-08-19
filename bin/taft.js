@@ -86,6 +86,7 @@ function render(err, warn, files) {
     var TAFT = {
         cwd: program.cwd,
         destDir: program.destDir,
+        output: program.output,
         // remove . from extension
         ext: (program.ext.slice(0, 1) === '.') ? program.ext.slice(1) : program.ext,
     };
