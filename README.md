@@ -177,9 +177,11 @@ Taft will register helpers for you. You pass it a file that `exports` a helper, 
 ````
 taft --helper helpers/magic.js source/page1.hbs > build/page1.hbs
 ````
+
+The [helpers](https://github.com/helpers) project has many useful helpers, the related repo [template-helpers](https://github.com/jonschlinkert/template-helpers) collects many of them.
 ````
-npm install -g handlebars-helper-minify
-taft --helper handlebars-helper-minify source/page1.hbs > build/page1.hbs
+npm install --save-dev template-helpers
+taft --helper template-helpers source/page1.hbs > build/page1.hbs
 ````
 
 If you're using a custom file, you can either export a function or an object containing several functions. In the former format, the function will be called with two arguments: `Handlebars` and `Taft.options`. In the latter format, the key of each function is the name of the helper.

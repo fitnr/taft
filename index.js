@@ -29,6 +29,15 @@ var fs = require('rw'),
     Data = require('./lib/data'),
     gm = require('gray-matter');
 
+var flatten = function(args) {
+    return [].concat.apply([], [].slice.call(args));
+};
+
+
+var stripExtname = function(file) {
+    return path.basename(file, path.extname(file));
+}
+
 function taft(file, options) {
     return new Taft(options)
         .build(file).toString();
@@ -275,6 +284,7 @@ Taft.prototype.helpers = function() {
     var helpers = flatten(arguments);
     var current = new Set(Object.keys(this.Handlebars.helpers));
 
+    // yeah this is a mess but there are so many kinds of helpers.
     mergeGlob(helpers).forEach(h => {
         var module;
 
@@ -283,14 +293,17 @@ Taft.prototype.helpers = function() {
                 this.Handlebars.registerHelper(h);
 
             } else if (typeof h === 'string') {
-
                 // load the module
                 try {
                     require.resolve(h);
                     module = require(h);
-                } catch(err) {
+                } catch (err) {
                     if (err.code === 'MODULE_NOT_FOUND')
-                        module = require(path.join(process.cwd(), h));
+                        try {
+                            module = require(path.join(process.cwd(), h));
+                        } catch (e) {
+                            module = require(path.join(process.cwd(), 'node_modules', h));
+                        }
                 }
 
                 // register the module one of a couple of ways
@@ -313,6 +326,7 @@ Taft.prototype.helpers = function() {
 
                 else
                     throw new Error("Didn't find a function or object in " + h);
+
             } else {
                 this.err('ignoring helper because it\'s a ' + typeof h + '. Expected an object or the name of a module');
             }
@@ -366,7 +380,6 @@ Taft.prototype.partials = function() {
     return this;
 };
 
-
 Taft.prototype.err = function(msg) { console.error(msg); };
 
 Taft.prototype.info = function(msg) {
@@ -376,11 +389,3 @@ Taft.prototype.info = function(msg) {
 Taft.prototype.debug = function(msg) {
     if (this.verbose && !this.silent) console.error(msg);
 };
-
-var flatten = function(args) {
-    return [].concat.apply([], [].slice.call(args));
-};
-
-var stripExtname = function(file) {
-    return path.basename(file, path.extname(file));
-}
