@@ -19,9 +19,10 @@ describe('Taft chaining', function(){
     });
 
     it('defaultLayout chains', function(){
+        this.T2.defaultLayout('default').should.be.instanceOf(taft);
         this.T2.defaultLayout('default.handlebars').should.be.instanceOf(taft);
         try {
-            this.T2.defaultLayout().should.equal('default.handlebars');    
+            this.T2.defaultLayout().should.equal('default');    
         } catch (e) {
             console.error(this.T2.layouts());
             console.error(this.T2.defaultLayout())
@@ -48,7 +49,7 @@ describe('Taft chaining', function(){
 
     it('layouts returns contents when arguments are empty', function(){
         this.T2.layouts().should.be.instanceOf(Set);
-        should.deepEqual(this.T2.layouts(), new Set(['default.handlebars', 'partial.handlebars']));
+        should.deepEqual(this.T2.layouts(), new Set(['default', 'partial']));
     });
 
 });

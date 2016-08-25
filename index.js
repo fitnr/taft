@@ -76,17 +76,18 @@ Taft.prototype.layouts = function() {
     var layouts = flatten(arguments);
 
     // populate this._layouts Map
-    mergeGlob(layouts).forEach(item =>
-        this._layouts.set(path.basename(item), item));
+    mergeGlob(layouts).forEach(item => 
+        this._layouts.set(stripExtname(item), item)
+    );
 
     this.debug('added layouts: ' + Array.from(this._layouts.keys()).join(', '));
 
     // as a convenience, when there's only one layout, that will be the default
     if (this._layouts.size === 1)
-        this._defaultLayout = path.basename(Array.from(this._layouts)[0][0]);
+        this._defaultLayout = Array.from(this._layouts)[0][0];
 
     else if (this._options.defaultLayout)
-        this._defaultLayout = path.basename(this._options.defaultLayout);
+        this._defaultLayout = stripExtname(this._options.defaultLayout);
 
     if (this._defaultLayout)
         this.debug('set default layout to ' + this._defaultLayout);
@@ -100,7 +101,7 @@ Taft.prototype.layouts = function() {
 Taft.prototype.defaultLayout = function(layout) {
     if (typeof layout === 'undefined') return this._defaultLayout;
 
-    layout = path.basename(layout);
+    layout = stripExtname(layout);
 
     if (this.layouts().has(layout))
         this._defaultLayout = layout;
@@ -116,10 +117,14 @@ Taft.prototype.defaultLayout = function(layout) {
  * @return {Content} layout with the given name, creating the template if needed
  */
 Taft.prototype._getLayout = function(name) {
+    // ignore the ext if we happen to be passed one
+    if (path.extname(name) !== '') name = stripExtname(name);
+
     if (!this._layouts.has(name)) {
+
         // if layout not registered, bail
         if (typeof name === 'string')
-            this.err('could not find layout :', name);
+            this.err('could not find layout: ' + name);
         return;
     }
 
@@ -198,7 +203,8 @@ Taft.prototype._createTemplate = function(file, options) {
         var tplData = preferGlobal ? merge(pageData, data) : merge(true, data, pageData);
 
         // layout doesn't get overridden
-        tplData.layout = (tplData.layout===path.basename(file)) ? undefined : tplData.layout;
+        if (tplData.layout === path.basename(file) || tplData.layout === stripExtname(file))
+            tplData.layout = undefined;
 
         var template = this.Handlebars.compile(page, {knownHelpers: this._helpers});
         var newTemplate = new Content(template(tplData), tplData);
@@ -343,7 +349,7 @@ Taft.prototype.partials = function() {
             }
 
         } else {
-            var p = path.basename(partial, path.extname(partial));
+            var p = stripExtname(partial);
 
             try {
                 this.Handlebars.registerPartial(p, fs.readFileSync(partial, 'utf8'));
@@ -374,3 +380,7 @@ Taft.prototype.debug = function(msg) {
 var flatten = function(args) {
     return [].concat.apply([], [].slice.call(args));
 };
+
+var stripExtname = function(file) {
+    return path.basename(file, path.extname(file));
+}

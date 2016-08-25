@@ -27,11 +27,11 @@ describe('Taft building with layout', function(){
     it('has the default layout', function(){
         var x = __dirname + '/layouts/default.handlebars';
         this.T.layouts(x);
-        this.T.layouts().has('default.handlebars').should.be.true;
+        this.T.layouts().has('default').should.be.true;
     });
 
     it('has the defaultLayout', function(){
-        this.T._defaultLayout.should.equal('default.handlebars');
+        this.T._defaultLayout.should.equal('default');
     });
 
     it('matches fixture', function(){
@@ -40,6 +40,7 @@ describe('Taft building with layout', function(){
     });
 
     it('has a layout function', function(){
+        this.T._getLayout('default').should.be.a.function;
         this.T._getLayout('default.handlebars').should.be.a.function;
     });
 

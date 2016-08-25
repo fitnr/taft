@@ -41,7 +41,7 @@ describe('When layout equals the file', function(){
     });
 
     it("defaultLayout equals the fixture", function(){
-        this.taft.defaultLayout().should.equal('test.html');
+        this.taft.defaultLayout().should.equal('test');
     });
 
     it("taft ignores the layout", function(){

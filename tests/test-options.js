@@ -20,7 +20,7 @@ describe('taft options', function(){
     });
 
     it('default layout', function(){
-        this.U._defaultLayout.should.equal('default.handlebars');
+        this.U._defaultLayout.should.equal('default');
     });
 
 });
