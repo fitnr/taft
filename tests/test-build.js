@@ -35,7 +35,7 @@ describe('Taft building with layout', function(){
     });
 
     it('matches fixture', function(){
-        result = ""+this.T.build(__dirname + '/pages/test.html');
+        var result = ""+this.T.build(__dirname + '/pages/test.html');
         result.should.equal(this.fixture);
     });
 

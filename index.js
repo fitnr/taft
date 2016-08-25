@@ -312,7 +312,11 @@ Taft.prototype.helpers = function() {
 
                 else if (typeof module === 'function')
                     try {
-                        this.Handlebars.registerHelper(module());
+                        try {
+                            this.Handlebars.registerHelper(module());
+                        } catch (e) {
+                            this.Handlebars.registerHelper(h.replace(/^helper-/, ''), module);
+                        }
                         
                         if (Object.keys(this.Handlebars.helpers).length === current.size)
                             throw new Error("Registering by passing function in " + h + " didn't work. Trying another way");

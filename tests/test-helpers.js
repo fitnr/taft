@@ -23,4 +23,18 @@ describe('taft helpers', function(){
 
         S._helpers.should.containEql('goo');
     });
+
+    it('register a helper package', function() {
+        S = new taft({
+            helpers: 'handlebars-helper-br',
+        });
+
+        S._helpers.should.containEql('br');
+    });
+
+    it('uses the helper package', function() {
+        var result = ""+ S.build(__dirname + '/pages/br.html');
+        result.trim().should.equal('<br>');
+    });
+
 });

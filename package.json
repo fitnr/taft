@@ -43,6 +43,7 @@
     "rw": "^0.1.4"
   },
   "devDependencies": {
+    "handlebars-helper-br": "^0.1.0",
     "mocha": "^2.3.0",
     "rewire": "^2.5.1",
     "should": "^8.0.2"
