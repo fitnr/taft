@@ -155,7 +155,7 @@ Taft.prototype._getLayout = function(name) {
  * @returns {Content} the built result, with an option recursive call to layout.layout
  */
 Taft.prototype._applyLayout = function(layout, content, options) {
-    if (typeof layout === 'undefined') return content;
+    if (!layout) return content;
 
     options = options || {};
 
