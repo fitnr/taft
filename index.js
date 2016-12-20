@@ -33,10 +33,9 @@ var flatten = function(args) {
     return [].concat.apply([], [].slice.call(args));
 };
 
-
 var stripExtname = function(file) {
     return path.basename(file, path.extname(file));
-}
+};
 
 function taft(file, options) {
     return new Taft(options)
