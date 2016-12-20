@@ -84,6 +84,7 @@ function render(err, warn, files) {
 
     // create TAFT global 
     var TAFT = {
+        version: program.version(),
         cwd: program.cwd,
         destDir: program.destDir,
         output: program.output,

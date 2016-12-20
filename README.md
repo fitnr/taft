@@ -281,10 +281,11 @@ DEVELOPMENT=1 taft source/page.hbs
 DEVELOPMENT= taft source/page.hbs
 ```
 
-The command line tool also adds some useful values to a `TAFT` global. The first three are the same for every page per run, the last is per-page:
+The command line tool also adds some useful values to a `TAFT` global. The first four are the same for every page per run, the last is per-page:
 
 ````javascript
-TAFT: {
+TAFT = {
+    version: '0.4.11'       // current Taft version
     cwd: 'tests',           // --cwd value
     destDir: 'output',      // --dest-dir value 
     ext: 'html',            // --ext value
