@@ -21,7 +21,7 @@
 
 'use strict';
 
-var fs = require('rw'),
+const fs = require('rw'),
     path = require('path'),
     merge = require('merge'),
     mergeGlob = require('./lib/merge-glob'),
@@ -29,13 +29,13 @@ var fs = require('rw'),
     Data = require('./lib/data'),
     gm = require('gray-matter');
 
-var flatten = function(args) {
-    return [].concat.apply([], [].slice.call(args));
-};
+function flatten(args) {
+    return Array.prototype.concat.apply([], [].slice.call(args));
+}
 
-var stripExtname = function(file) {
+function stripExtname(file) {
     return path.basename(file, path.extname(file));
-};
+}
 
 function taft(file, options) {
     return new Taft(options)
@@ -81,7 +81,7 @@ function Taft(options) {
 Taft.prototype.layouts = function() {
     if (arguments.length === 0) return new Set(this._layouts.keys());
 
-    var layouts = flatten(arguments);
+    const layouts = flatten(arguments);
 
     // populate this._layouts Map
     mergeGlob(layouts).forEach(item => 
@@ -160,7 +160,7 @@ Taft.prototype._applyLayout = function(layout, content, options) {
     options = options || {};
 
     try {
-        var layout_template = this._getLayout(layout);
+        const layout_template = this._getLayout(layout);
 
         if (!layout_template) return content;
 
@@ -188,7 +188,7 @@ Taft.prototype._applyLayout = function(layout, content, options) {
  * @returns {object} a template object named (path.resolve(file))
  */
 Taft.prototype._createTemplate = function(file, options) {
-    var source = gm.read(file, {strict: true}),
+    const source = gm.read(file, {strict: true}),
         context = source.data || {},
         page = (source.content || '').trimLeft();
 
@@ -204,18 +204,18 @@ Taft.prototype._createTemplate = function(file, options) {
     else if (!context.layout && this._defaultLayout && !options.isLayout)
         context.layout = this._defaultLayout;
 
-    var data = merge(true, this._data, context);
+    const data = merge(true, this._data, context);
 
     // anonymous function is basically a Handlebars template function, with a few spicy pickles added
     return (function(pageData, preferGlobal) {
-        var tplData = preferGlobal ? merge(pageData, data) : merge(true, data, pageData);
+        const tplData = preferGlobal ? merge(pageData, data) : merge(true, data, pageData);
 
         // layout doesn't get overridden
         if (tplData.layout === path.basename(file) || tplData.layout === stripExtname(file))
             tplData.layout = undefined;
 
-        var template = this.Handlebars.compile(page, {knownHelpers: this._helpers});
-        var newTemplate = new Content(template(tplData), tplData);
+        const template = this.Handlebars.compile(page, {knownHelpers: this._helpers});
+        const newTemplate = new Content(template(tplData), tplData);
 
         return this._applyLayout(tplData.layout, newTemplate, {isLayout: options.isLayout});
     }).bind(this);
@@ -231,9 +231,9 @@ Taft.prototype.data = function() {
     if (arguments.length === 0) return this._data;
 
     // argument may be a file, a glob, or an object
-    var parseExtend = function(argument) {
-        var r = Data.parse(argument);
-        var keys = Object.keys(r);
+    const parseExtend = (argument) => {
+        const r = Data.parse(argument);
+        const keys = Object.keys(r);
 
         if (keys.length === 0)
             this.err("could not read any data from " + argument);
@@ -255,7 +255,7 @@ Taft.prototype.build = function(file, data) {
     var content;
 
     try {
-        var template = this._createTemplate(path.resolve(file));
+        const template = this._createTemplate(path.resolve(file));
 
         // Ignore page when published === false
         if (!template) {
@@ -282,8 +282,8 @@ Taft.prototype.build = function(file, data) {
 Taft.prototype.helpers = function() {
     if (arguments.length === 0) return Object.keys(this.Handlebars.helpers);
 
-    var helpers = flatten(arguments);
-    var current = new Set(Object.keys(this.Handlebars.helpers));
+    const helpers = flatten(arguments);
+    const current = new Set(Object.keys(this.Handlebars.helpers));
 
     // yeah this is a mess but there are so many kinds of helpers.
     mergeGlob(helpers).forEach(h => {
@@ -342,7 +342,7 @@ Taft.prototype.helpers = function() {
     });
 
     // return new helpers
-    var registered = Object.keys(this.Handlebars.helpers).filter(e => !current.has(e));
+    const registered = Object.keys(this.Handlebars.helpers).filter(e => !current.has(e));
 
     if (registered.length) this.debug('registered helpers: ' + registered.join(', '));
 
@@ -354,8 +354,8 @@ Taft.prototype.helpers = function() {
 Taft.prototype.partials = function() {
     if (arguments.length === 0) return Object.keys(this.Handlebars.partials);
 
-    var partials = flatten(arguments);
-    var registered = [];
+    const partials = flatten(arguments);
+    const registered = [];
 
     mergeGlob(partials).forEach(partial => {
         if (typeof partial === 'object') {

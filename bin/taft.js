@@ -20,14 +20,14 @@
 /* jshint esversion: 6 */
 'use strict';
 
-var path = require('path'),
+const path = require('path'),
     fs = require('rw'),
     glob = require('glob'),
     merge = require('merge'),
     mkdirp = require('mkdirp'),
     program = require('commander');
  
-var check = require('../lib/check'),
+const check = require('../lib/check'),
     Taft = require('..');
 
 function collect(val, memo) {
@@ -58,10 +58,8 @@ program
 
 function outFilePath(file) {
     if (program.destDir) {
-        if (program.cwd)
-            file = path.relative(program.cwd, file);
-
-        return path.join(program.destDir, file);
+        const outFile = (program.cwd) ? path.relative(program.cwd, file) : file;
+        return path.join(program.destDir, outFile);
 
     } else {
         return program.output;
@@ -84,7 +82,7 @@ function render(err, warn, files) {
 
     // create TAFT global 
     // Two more keys, `output` & `file`, are added in the build step.
-    var TAFT = {
+    const TAFT = {
         version: program.version(),
         cwd: program.cwd,
         destDir: program.destDir,
@@ -92,24 +90,18 @@ function render(err, warn, files) {
         ext: (program.ext[0] === '.') ? program.ext.slice(1) : program.ext,
     };
 
-    // Add environment variables
-    options.data.push({ENV: process.env});
-
     // render output
-    var taft = new Taft(options);
+    const taft = new Taft(options);
 
     files.forEach(file => {
-        var outfile = outFilePath(file),
-            build;
-
         TAFT.file = (program.cwd) ? path.relative(program.cwd, file) : file;
-        TAFT.output = outfile;
+        TAFT.output = outFilePath(file);
 
-        build = taft.build(file, {'TAFT': TAFT});
+        const build = taft.build(file, {'TAFT': TAFT});
 
         if (build) {
-            var ext = (build.data.page || TAFT).ext || TAFT.ext;
-            outfile = (outfile === '/dev/stdout') ? outfile : replaceExt(outfile, ext);    
+            const ext = (build.data.page || TAFT).ext || TAFT.ext,
+                outfile = (TAFT.output === '/dev/stdout') ? TAFT.output : replaceExt(TAFT.output, ext);    
             save(outfile, build.toString());
         }
     });
@@ -131,10 +123,11 @@ function save(file, content) {
 }
 
 // setup options
-var options = {
+// include ENV variables in data
+const options = {
     layouts: program.layout || undefined,
     partials: program.partial || undefined,
-    data: program.data,
+    data: program.data.concat({ENV: process.env}),
     helpers: program.helper || undefined,
     verbose: program.verbose || false,
     silent: program.silent || false,
