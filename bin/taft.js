@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-/* jshint esversion: 6 */
 /*
  * taft: generate files with Handlebars
  * Copyright (C) 2016 Neil Freeman
@@ -18,6 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+/* jshint esversion: 6 */
 'use strict';
 
 var path = require('path'),
@@ -31,8 +31,8 @@ var check = require('../lib/check'),
     Taft = require('..');
 
 function collect(val, memo) {
-  memo.push(val);
-  return memo;
+    memo.push(val);
+    return memo;
 }
 
 const license = `\n  copyright (C) 2016 Neil Freeman
@@ -83,12 +83,13 @@ function render(err, warn, files) {
     program.ext = path.extname(program.output) || program.ext;
 
     // create TAFT global 
+    // Two more keys, `output` & `file`, are added in the build step.
     var TAFT = {
         version: program.version(),
         cwd: program.cwd,
         destDir: program.destDir,
         // remove . from extension
-        ext: (program.ext.slice(0, 1) === '.') ? program.ext.slice(1) : program.ext,
+        ext: (program.ext[0] === '.') ? program.ext.slice(1) : program.ext,
     };
 
     // Add environment variables
@@ -121,14 +122,10 @@ function save(file, content) {
         if (e) return console.error(e);
 
         fs.writeFile(file, content, 'utf8', function(e) {
-
-            if (e) {
+            if (e)
                 console.error(e);
-                return;
-            }
             else if (program.silent !== true && file !== '/dev/stdout')
                 console.log(file);
-
         });
     });
 }
@@ -144,4 +141,5 @@ var options = {
     defaultLayout: program.defaultLayout || undefined,
 };
 
+// render files after checking quality of the args
 check.args(program, render);
