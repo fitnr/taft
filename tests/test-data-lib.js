@@ -70,13 +70,21 @@ describe('data lib', function(){
 
     it('readFile errs when it does not understand', function(){
         should.throws(
-            function(){ readFile('index.js'); },
-            Error
-        );
-        should.throws(
             function(){ readFile('nonono.nonono'); },
             Error
         );
+    });
+
+    it('readFile returns empty when file is unreadable', function(){
+        readFile('LICENSE').should.deepEqual({});
+    });
+
+    it('readFile ignores directories', function() {
+        (readFile('tests') === undefined).should.deepEqual(true);
+    });
+
+    it('readFile errors with missing files', function() {
+        (readFile('tests') === undefined).should.deepEqual(true);
     });
 
     it('readGlob', function(){

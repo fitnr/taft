@@ -268,6 +268,8 @@ Taft.prototype.build = function(file, data) {
         content = template(data);
 
     } catch (err) {
+        // ignore directories
+        if (err.code === 'EISDIR') return;
         this.err('error building ' + file + ': ' + err.message);
         content = new Content();
     }
@@ -372,7 +374,8 @@ Taft.prototype.partials = function() {
                 this.Handlebars.registerPartial(p, fs.readFileSync(partial, 'utf8'));
                 registered.push(p);
             } catch (err) {
-                this.err("could not register partial: " + p);
+                if (err.code !== 'EISDIR')
+                    this.err("could not register partial: " + p);
             }
         }
 

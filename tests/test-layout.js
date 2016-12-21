@@ -44,6 +44,10 @@ describe('When layout equals the file', function(){
         this.taft.defaultLayout().should.equal('test');
     });
 
+    it('ignores directories passed to partials', function() {
+        this.taft.partials('tests').should.equal(this.taft);
+    });
+
     it("taft ignores the layout", function(){
         this.taft.build(__dirname + '/pages/test.html').toString().should.equal(this.fixture);
     });
