@@ -87,7 +87,6 @@ function render(err, warn, files) {
         version: program.version(),
         cwd: program.cwd,
         destDir: program.destDir,
-        output: program.output,
         // remove . from extension
         ext: (program.ext.slice(0, 1) === '.') ? program.ext.slice(1) : program.ext,
     };
@@ -101,8 +100,10 @@ function render(err, warn, files) {
     files.forEach(file => {
         var outfile = outFilePath(file),
             build;
-        
+
         TAFT.file = (program.cwd) ? path.relative(program.cwd, file) : file;
+        TAFT.output = outfile;
+
         build = taft.build(file, {'TAFT': TAFT});
 
         if (build) {
