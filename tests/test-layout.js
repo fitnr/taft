@@ -68,5 +68,4 @@ describe('When building nested layouts', function(){
     it('builds them like a normal person', function(){
         this.taft.build('tests/pages/nested.html').toString().should.equal(this.fixture);
     });
-
 });
