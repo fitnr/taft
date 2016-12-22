@@ -68,7 +68,7 @@ describe('data lib', function(){
         readFile(__dirname + '/data/ini.ini').should.deepEqual({cat: "miaou"});
     });
 
-    it('readFile errs when it does not understand', function(){
+    it("readFile errs when file doesn't exist", function(){
         should.throws(
             function(){ readFile('nonono.nonono'); },
             Error
@@ -80,17 +80,27 @@ describe('data lib', function(){
     });
 
     it('readFile ignores directories', function() {
-        (readFile('tests') === undefined).should.deepEqual(true);
+        Object.keys(readGlob('tests/*')).should.not.containDeep(['pages', 'data', 'dup']);
     });
 
-    it('readFile errors with missing files', function() {
-        (readFile('tests') === undefined).should.deepEqual(true);
+    it('readFile errors with directories', function() {
+        should.throws(
+            function(){ readFile('tests'); },
+            Error
+        );
     });
 
-    it('readGlob', function(){
+    it('readGlob reads globs', function(){
         var glob = readGlob(__dirname + '/data/*');
         glob.ini.cat.should.equal('miaou', 'glob reads ini');
         glob.yaml.cat.should.equal('meow', 'glob reads yaml');
         glob.json.cat.should.equal('meow', 'glob reads json');
+    });
+
+    it('readGlob errors with empty globs', function() {
+        should.throws(
+            function(){ readGlob('nononono.nonono'); },
+            Error
+        );
     });
 });

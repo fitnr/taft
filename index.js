@@ -231,22 +231,21 @@ Taft.prototype.data = function() {
     if (arguments.length === 0) return this._data;
 
     // argument may be a file, a glob, or an object
-    const parseExtend = (argument) => {
-        const r = Data.parse(argument);
-        const keys = Object.keys(r);
+    flatten(arguments).forEach(function(argument) {
+        Data.parse(argument, (err, data) => {
+            if (err) {
+                this.err(err.message);
+                return;
+            }
+            const keys = Object.keys(data);
+            if (keys.length === 1)
+                this.debug("parsed " + keys[0]);
+            else if (keys.length > 1)
+                this.debug("parsed " + argument.substr(0, 60));
 
-        if (keys.length === 0)
-            this.err("could not read any data from " + argument);
-
-        else if (keys.length === 1)
-            this.debug("parsed " + keys[0]);
-        else
-            this.debug("parsed an object");
-
-        merge(this._data, r);
-    };
-
-    flatten(arguments).forEach(parseExtend, this);
+            merge(this._data, data);
+        });
+    }, this);
 
     return this;
 };
