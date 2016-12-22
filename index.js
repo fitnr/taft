@@ -84,7 +84,7 @@ Taft.prototype.layouts = function() {
     const layouts = flatten(arguments);
 
     // populate this._layouts Map
-    mergeGlob(layouts).forEach(item => 
+    mergeGlob(layouts, {nodir: true}).forEach(item => 
         this._layouts.set(stripExtname(item), item)
     );
 
@@ -286,7 +286,7 @@ Taft.prototype.helpers = function() {
     const current = new Set(Object.keys(this.Handlebars.helpers));
 
     // yeah this is a mess but there are so many kinds of helpers.
-    mergeGlob(helpers).forEach(h => {
+    mergeGlob(helpers, {nodir: true}).forEach(h => {
         var module;
 
         try {
@@ -357,7 +357,7 @@ Taft.prototype.partials = function() {
     const partials = flatten(arguments);
     const registered = [];
 
-    mergeGlob(partials).forEach(partial => {
+    mergeGlob(partials, {nodir: true}).forEach(partial => {
         if (typeof partial === 'object') {
 
             for (var name in partial) {
