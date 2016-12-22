@@ -100,8 +100,8 @@ function render(err, warn, files) {
         const build = taft.build(file, {'TAFT': TAFT});
 
         if (build) {
-            const ext = (build.data.page || TAFT).ext || TAFT.ext,
-                outfile = (TAFT.output === '/dev/stdout') ? TAFT.output : replaceExt(TAFT.output, ext);    
+            const ext = (build.data.page || build.data || TAFT).ext || TAFT.ext,
+                outfile = (TAFT.output === '/dev/stdout') ? TAFT.output : replaceExt(TAFT.output, ext);
             save(outfile, build.toString());
         }
     });
