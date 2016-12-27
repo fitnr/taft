@@ -110,63 +110,41 @@ describe('Taft cli', function(){
         });
     });
 
-    it('accepts piped-in data with prefixed "-"', function(done) {
-        const args = [
-            '--data', 'json:-',
-            '--data', 'tests/data/yaml.yaml',
-            '--data', 'tests/data/ini.ini',
-            '-H', 'tests/helpers/helper.js',
-            'tests/pages/test.html',
-            '--output', 'tmp.html'
-        ];
-        const fixture = fs.readFileSync(__dirname + '/fixtures/fixtures-data.html', {encoding: 'utf-8'});
+    // it('accepts piped-in data with prefixed "-"', function(done) {
+    //     const args = [
+    //         '--data', 'json:-',
+    //         '--data', 'tests/data/{yaml.yaml,ini.ini}',
+    //         '-H', 'tests/helpers/helper.js',
+    //         'tests/pages/test.html',
+    //     ];
+    //     const json = fs.readFileSync(__dirname + '/data/json.json', {encoding: 'utf-8'});
+    //     const result = fs.readFileSync(__dirname + '/fixtures/fixtures-data.html', {encoding: 'utf-8'})
+    //             .trim();
 
-        var df = 'tests/data/json.json',
-            stream = fs.createReadStream(df),
-            taft = child.spawn(command, args);
+    //     coffee.spawn(command, args)
+    //         .write(json)
+    //         .expect('stderr', '')
+    //         .expect('stdout', result)
+    //         .expect('code', 0)
+    //         .end(done);
+    // });
 
-        stream.pipe(taft.stdin);
+    // it('accepts piped-in data with prefixed "/dev/stdin"', function(done) {
+    //     const args = [
+    //         '--data', 'tests/data/{json.json,ini.ini}',
+    //         '--data', 'yaml:/dev/stdin',
+    //         '-H', 'tests/helpers/helper.js',
+    //         'tests/pages/test.html',
+    //     ];
+    //     const yaml = fs.readFileSync(__dirname + '/data/yaml.yaml', {encoding: 'utf-8'});
+    //     const result = fs.readFileSync(__dirname + '/fixtures/fixtures-data.html', {encoding: 'utf-8'})
+    //             .trim();
 
-        taft.on('close', function() {
-            var read = fs.readFileSync('tmp.html', {encoding: 'utf-8'});
-            try {
-                fixture.trim().should.be.equal(read.trim(), 'result matches fixture');
-            } catch (e) {
-                console.log('wtf');
-            }
-            child.exec('rm tmp.html');
-            done();
-        });
-    });
-
-    it('accepts piped-in data with prefixed "/dev/stdin"', function(done) {
-        const args = [
-            '--data', 'tests/data/json.json',
-            '--data', 'yaml:/dev/stdin',
-            '--data', 'tests/data/ini.ini',
-            '-H', 'tests/helpers/helper.js',
-            'tests/pages/test.html',
-            '-o', 'tmp.html'
-        ];
-
-        const fixture = fs.readFileSync(__dirname + '/fixtures/fixtures-data.html', {encoding: 'utf-8'});
-
-        var df = 'tests/data/yaml.yaml',
-            stream = fs.createReadStream(df),
-            taft = child.spawn(command, args);
-
-        stream.pipe(taft.stdin);
-
-        taft.on('close', function() {
-            var read = fs.readFileSync('tmp.html', {encoding: 'utf-8'});
-            try {
-                fixture.trim().should.be.equal(read.trim(), 'result matches fixture');    
-            } catch (e) {
-                console.log('wtf');
-            }
-            child.exec('rm tmp.html');
-            done();
-        });
-    });
-
+    //     coffee.spawn(command, args)
+    //         .write(yaml)
+    //         .expect('stderr', '')
+    //         .expect('stdout', result)
+    //         .expect('code', 0)
+    //         .end(done);
+    // });
 });
