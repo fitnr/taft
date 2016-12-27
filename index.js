@@ -237,13 +237,18 @@ Taft.prototype.data = function() {
                 this.err(err.message);
                 return;
             }
-            const keys = Object.keys(data);
-            if (keys.length === 1)
-                this.debug("parsed " + keys[0]);
-            else if (keys.length > 1)
-                this.debug("parsed " + argument.substr(0, 60));
+            try {
+                const keys = Object.keys(data);
+                if (keys.length === 1)
+                    this.debug("parsed " + keys[0]);
+                else if (keys.length > 1)
+                    this.debug("parsed " + argument.substr(0, 60));
 
-            merge(this._data, data);
+                merge(this._data, data);
+
+            } catch (e) {
+                this.err('error reading ', argument, e.message);
+            }
         });
     }, this);
 
