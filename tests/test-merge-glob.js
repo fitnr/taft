@@ -1,7 +1,6 @@
 var should = require('should');
 var mergeGlob = require("../lib/merge-glob");
 
-
 describe('merge-glob', function() {
 
     it('is a function', function(){

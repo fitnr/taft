@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 var should = require('should');
 var taft = require('..');
 
