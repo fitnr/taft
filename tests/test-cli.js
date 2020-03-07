@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 /*jshint esnext: true */
 
 var fs = require('fs');
