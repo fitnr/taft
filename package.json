@@ -1,6 +1,6 @@
 {
   "name": "taft",
-  "version": "0.6.1",
+  "version": "0.7.0",
   "description": "Generate static html files from Handlebars files with YAML front matter",
   "main": "index.js",
   "scripts": {
@@ -9,7 +9,9 @@
     "docs": "jsdoc index.js lib/* -d docs",
     "postversion": "grep $npm_package_version bin/taft.js || echo 'update bin/taft.js with new version'"
   },
-  "bin": "bin/taft.js",
+  "bin": {
+    "taft": "bin/taft.js"
+  },
   "repository": {
     "type": "git",
     "url": "http://github.com/fitnr/taft"
