@@ -49,7 +49,7 @@
   },
   "devDependencies": {
     "handlebars-helper-br": "^0.1.0",
-    "jsdoc": "^3.6.3",
+    "jsdoc": "^3.6.7",
     "mocha": "^7.1.2",
     "rewire": "^2.5.1",
     "should": "^8.0.2"
