@@ -4,7 +4,6 @@
   "description": "Generate static html files from Handlebars files with YAML front matter",
   "main": "index.js",
   "scripts": {
-    "cover": "istanbul cover _mocha -- tests",
     "test": "mocha tests/*.js",
     "docs": "jsdoc index.js lib/* -d docs",
     "postversion": "grep $npm_package_version bin/taft.js || echo 'update bin/taft.js with new version'"
