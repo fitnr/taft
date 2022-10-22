@@ -17,9 +17,7 @@ const execArgs = [
         'tests/pages/test.html'
     ];
 
-const Fixture = fs.readFileSync(__dirname + '/fixtures/index.html', {
-    encoding: 'utf-8'
-});
+const Fixture = fs.readFileSync(__dirname + '/fixtures/index.html', {encoding: 'utf-8'});
 
 describe('Taft cli', function(){
     it('gives help when asked', function(done) {
@@ -92,10 +90,10 @@ describe('Taft cli', function(){
             done();
         });
     });
-    /*
-    -- Fail on github workflows due to timeout. Probably some security biz
+
     it('accepts piped-in data with prefixed "-"', function(done) {
-        const args = [
+        const cmd = [
+            command,
             "--data", "json:-",
             '--data', 'tests/data/yaml.yaml',
             '--data', 'tests/data/ini.ini',
@@ -103,35 +101,63 @@ describe('Taft cli', function(){
             "-H", "tests/helpers/helper.js",
             "tests/pages/test.html"
         ];
-        const json = fs.readFileSync(__dirname + '/data/json.json', {encoding: 'utf-8'});
+        const infile = __dirname + '/data/json.json';
         const fixture = fs.readFileSync(__dirname + '/fixtures/fixtures-data.html', {encoding: 'utf-8'});
-        const proc = child.spawn(command, args);
-        proc.stdout.on('data', (data) => {
-            data.toString().should.be.equal(fixture, 'New file matches');
-            done();
+        child.exec(`cat ${infile} | ` + cmd.join(' '), (e, stdout, stderr) => {
+            if (e) throw e;
+            stdout.toString().should.be.equal(fixture, 'New file matches');
+            stderr.should.be.equal('');
+            done()
         });
-        proc.stdin.write(json);
-        proc.stdin.end();
     });
 
     it('accepts piped-in data with prefixed "/dev/stdin"', function(done) {
-        const args = [
+        const cmd = [
+            command,
             '--data', 'tests/data/json.json',
             '--data', 'tests/data/ini.ini',
             '--data', 'yaml:/dev/stdin',
-            '--data', '{"bees": "cool"}',
+            '--data', "'{\"bees\": \"cool\"}'",
             '-H', 'tests/helpers/helper.js',
             'tests/pages/test.html',
         ];
-        const yaml = fs.readFileSync(__dirname + '/data/yaml.yaml', {encoding: 'utf-8'});
+        const infile = __dirname + '/data/yaml.yaml';
         const fixture = fs.readFileSync(__dirname + '/fixtures/fixtures-data.html', {encoding: 'utf-8'});
-        const proc = child.spawn(command, args);
-        proc.stdout.on('data', (data) => {
-            data.toString().should.be.equal(fixture, 'New file matches');
+        child.exec(`cat ${infile} | ` + cmd.join(' '), (e, stdout, stderr) => {
+            if (e) throw e;
+            stdout.should.be.equal(fixture, 'New file matches');
+            stderr.should.be.equal('');
             done();
         });
-        proc.stdin.write(yaml);
-        proc.stdin.end();
     });
-    */
+
+    it('accepts piped-in JSON with bare "-"', function(done) {
+        const cmd  = `cat tests/data/json.json | ${command} --data - tests/pages/simple.html`;
+        child.exec(cmd, (e, stdout, stderr) => {
+            if (e) throw e;
+            stdout.should.be.equal("<p>meow</p>\n", 'Result matches with JSON data');
+            stderr.should.be.equal('');
+            done();
+        });
+    });
+
+    it('accepts piped-in YAML with bare "-"', function(done) {
+        const cmd  = `cat tests/data/yaml.yaml | ${command} --data - tests/pages/simple.html`;
+        child.exec(cmd, (e, stdout, stderr) => {
+            if (e) throw e;
+            stdout.should.be.equal("<p>meow</p>\n", 'Result matches with YAML data');
+            stderr.should.be.equal('');
+            done();
+        });
+    });
+
+    it('accepts piped-in INI with bare "-"', function(done) {
+        const cmd  = `cat tests/data/ini.ini | ${command} --data - tests/pages/simple.html`;
+        child.exec(cmd, (e, stdout, stderr) => {
+            if (e) throw e;
+            stdout.should.be.equal("<p>miaou</p>\n", 'Result matches with INI data');
+            stderr.should.be.equal('');
+            done();
+        });
+    });
 });
