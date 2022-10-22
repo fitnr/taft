@@ -1,8 +1,7 @@
 /*jshint esnext: true */
-
-var fs = require('fs');
-var child = require('child_process');
-var should = require('should');
+const fs = require('fs');
+const child = require('child_process');
+const should = require('should');
 
 const command = 'bin/taft.js';
 const execArgs = [
@@ -109,41 +108,43 @@ describe('Taft cli', function(){
         });
     });
 
-    // it('accepts piped-in data with prefixed "-"', function(done) {
-    //     const args = [
-    //         '--data', 'json:-',
-    //         '--data', 'tests/data/{yaml.yaml,ini.ini}',
-    //         '-H', 'tests/helpers/helper.js',
-    //         'tests/pages/test.html',
-    //     ];
-    //     const json = fs.readFileSync(__dirname + '/data/json.json', {encoding: 'utf-8'});
-    //     const result = fs.readFileSync(__dirname + '/fixtures/fixtures-data.html', {encoding: 'utf-8'})
-    //             .trim();
+    it('accepts piped-in data with prefixed "-"', function(done) {
+        const args = [
+            "--data", "json:-",
+            '--data', 'tests/data/yaml.yaml',
+            '--data', 'tests/data/ini.ini',
+            '--data', 'bees=cool',
+            "-H", "tests/helpers/helper.js",
+            "tests/pages/test.html"
+        ];
+        const json = fs.readFileSync(__dirname + '/data/json.json', {encoding: 'utf-8'});
+        const fixture = fs.readFileSync(__dirname + '/fixtures/fixtures-data.html', {encoding: 'utf-8'});
+        const proc = child.spawn(command, args);
+        proc.stdout.on('data', (data) => {
+            data.toString().should.be.equal(fixture, 'New file matches');
+            done();
+        });
+        proc.stdin.write(json);
+        proc.stdin.end();
+    });
 
-    //     coffee.spawn(command, args)
-    //         .write(json)
-    //         .expect('stderr', '')
-    //         .expect('stdout', result)
-    //         .expect('code', 0)
-    //         .end(done);
-    // });
-
-    // it('accepts piped-in data with prefixed "/dev/stdin"', function(done) {
-    //     const args = [
-    //         '--data', 'tests/data/{json.json,ini.ini}',
-    //         '--data', 'yaml:/dev/stdin',
-    //         '-H', 'tests/helpers/helper.js',
-    //         'tests/pages/test.html',
-    //     ];
-    //     const yaml = fs.readFileSync(__dirname + '/data/yaml.yaml', {encoding: 'utf-8'});
-    //     const result = fs.readFileSync(__dirname + '/fixtures/fixtures-data.html', {encoding: 'utf-8'})
-    //             .trim();
-
-    //     coffee.spawn(command, args)
-    //         .write(yaml)
-    //         .expect('stderr', '')
-    //         .expect('stdout', result)
-    //         .expect('code', 0)
-    //         .end(done);
-    // });
+    it('accepts piped-in data with prefixed "/dev/stdin"', function(done) {
+        const args = [
+            '--data', 'tests/data/json.json',
+            '--data', 'tests/data/ini.ini',
+            '--data', 'yaml:/dev/stdin',
+            '--data', '{"bees": "cool"}',
+            '-H', 'tests/helpers/helper.js',
+            'tests/pages/test.html',
+        ];
+        const yaml = fs.readFileSync(__dirname + '/data/yaml.yaml', {encoding: 'utf-8'});
+        const fixture = fs.readFileSync(__dirname + '/fixtures/fixtures-data.html', {encoding: 'utf-8'});
+        const proc = child.spawn(command, args);
+        proc.stdout.on('data', (data) => {
+            data.toString().should.be.equal(fixture, 'New file matches');
+            done();
+        });
+        proc.stdin.write(yaml);
+        proc.stdin.end();
+    });
 });

@@ -27,7 +27,7 @@ describe('When layout is false', function(){
     });
 
     it("ignore the default layout", function(){
-        this.taft.build(__dirname + '/pages/no-layout.html').toString().should.equal(this.fixture);
+        this.taft.build(__dirname + '/pages/no-layout.html').toString().trim().should.equal(this.fixture.trim());
     });
 });
 
