@@ -18,7 +18,7 @@ var options = {
 
 describe('Taft data', function(){
     before(function(){
-        this.T = Taft(options);
+        this.T = new Taft(options);
         Handlebars.unregisterHelper('foo');
     });
 
@@ -44,7 +44,7 @@ describe('Taft data', function(){
 
     it('accepts a prefix on a glob', function() {
         var fixture = fs.readFileSync(__dirname + '/fixtures/prefixed-list.txt', {encoding: 'utf-8'});
-        var result = Taft({silent: true, data: 'cats:tests/data/*'})
+        var result = new Taft({silent: true, data: 'cats:tests/data/*'})
             .build("tests/pages/prefix-list.html");
         result.toString().should.equal(fixture);
     });

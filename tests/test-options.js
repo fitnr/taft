@@ -1,5 +1,5 @@
 var should = require('should');
-var taft = require('..');
+var Taft = require('..');
 
 describe('taft options', function(){
 
@@ -9,7 +9,7 @@ describe('taft options', function(){
             defaultLayout: 'default.handlebars',
         };
 
-        this.U = taft(options);
+        this.U = new Taft(options);
     });
 
     it('silent and verbose defaults', function(){

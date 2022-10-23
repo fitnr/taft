@@ -39,7 +39,7 @@ describe('Taft functions', function(){
         verbose: 0
     };
 
-    T = taft(options);
+    T = new taft(options);
 
     it('accept data', function(){
         T == T.data([__dirname + '/data/json.json', __dirname + '/data/yaml.yaml']);
