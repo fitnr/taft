@@ -16,7 +16,7 @@
     "url": "http://github.com/fitnr/taft"
   },
   "engines": {
-    "node": ">=10.0.0"
+    "node": ">=14.0.0"
   },
   "keywords": [
     "command line utilities",
